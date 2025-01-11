@@ -9,28 +9,23 @@ namespace FribergCarRentals.Models.Viewmodels
         public string Tillverkare { get; set; } = null!;
 
         [Required(ErrorMessage = "årsmodell")]
-        public int ÅrsModell { get; set; }
+        public int Årsmodell { get; set; }
 
         [Required(ErrorMessage = "modell")]
         [MaxLength(100)]
         public string Modell { get; set; } = null!;
 
-        [Required(ErrorMessage = "drivlina")]
-        [MaxLength(5)]
-        public string Drivlina { get; set; } = null!;
+        [Required(ErrorMessage = "drivning")]
+        [MaxLength(20)]
+        public string Drivning { get; set; } = null!;
 
         [Required(ErrorMessage = "bränsle")]
         [MaxLength(20)]
         public string Bränsle { get; set; } = null!;
 
-        [Required(ErrorMessage = "bränsleförbrukning")]
-        public string BränsleFörbrukning { get; set; } = null!;
-
-        [Required(ErrorMessage = "tankvolym")]
-        public string Tankvolym { get; set; } = null!;
-
-        [Required(ErrorMessage = "maxmotoreffekt")]
-        public int MaxMotoreffekt { get; set; } // Hk
+        [Required(ErrorMessage = "växellåda")]
+        [MaxLength(20)]
+        public string Växellåda { get; set; } = null!;
 
         [Required(ErrorMessage = "beskrivning")]
         public string Beskrivning { get; set; } = null!;

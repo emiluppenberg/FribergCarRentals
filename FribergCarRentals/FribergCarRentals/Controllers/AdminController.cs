@@ -78,13 +78,11 @@ namespace FribergCarRentals.Controllers
             var bil = new Bil()
             {
                 Tillverkare = model.Tillverkare,
-                ÅrsModell = model.ÅrsModell,
+                Årsmodell = model.Årsmodell,
                 Modell = model.Modell,
-                Drivlina = model.Drivlina,
+                Drivning = model.Drivning,
                 Bränsle = model.Bränsle,
-                BränsleFörbrukning = model.BränsleFörbrukning,
-                Tankvolym = model.Tankvolym,
-                MaxMotoreffekt = model.MaxMotoreffekt,
+                Växellåda = model.Växellåda,
                 Beskrivning = model.Beskrivning,
                 Bilder = bilder
             };
@@ -99,6 +97,13 @@ namespace FribergCarRentals.Controllers
             {
                 return Json(new { result = ex.Message });
             }
+        }
+
+        public async Task<IActionResult> Bilar()
+        {
+            var bilar = await bilRepository.GetAllAsync();
+
+            return View(bilar);
         }
     }
 }

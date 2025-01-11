@@ -13,53 +13,55 @@
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <div class="form-group w-50 p-1">
             <label asp-for="Tillverkare" class="control-label"></label>
-            <input asp-for="Tillverkare" id="tillverkare" class="form-control" />
             <span id="errortillverkare" class="text-danger"></span>
+            <input asp-for="Tillverkare" id="tillverkare" class="form-control" />
         </div>
         <div class="form-group w-50 p-1">
-            <label asp-for="ÅrsModell" class="control-label"></label>
-            <input asp-for="ÅrsModell" id="årsmodell" class="form-control" />
+            <label asp-for="Årsmodell" class="control-label"></label>
             <span id="errorårsmodell" class="text-danger"></span>
+            <input asp-for="Årsmodell" id="årsmodell" class="form-control" />
         </div>
         <div class="form-group w-50 p-1">
             <label asp-for="Modell" class="control-label"></label>
-            <input asp-for="Modell" id="modell" class="form-control" />
             <span id="errormodell" class="text-danger"></span>
+            <input asp-for="Modell" id="modell" class="form-control" />
         </div>
         <div class="form-group w-50 p-1">
-            <label asp-for="Drivlina" class="control-label"></label>
-            <input asp-for="Drivlina" id="drivlina" class="form-control" />
-            <span id="errordrivlina" class="text-danger"></span>
+            <label asp-for="Drivning" class="control-label"></label>
+            <span id="errordrivning" class="text-danger"></span>
+            <select asp-for="Drivning" id="drivning" class="form-select">
+                <option value="Tvåhjulsdrift">Tvåhjulsdrift</option>
+                <option value="Fyrhjulsdrift">Fyrhjulsdrift</option>
+            </select>
         </div>
         <div class="form-group w-50 p-1">
             <label asp-for="Bränsle" class="control-label"></label>
-            <input asp-for="Bränsle" id="bränsle" class="form-control" />
             <span id="errorbränsle" class="text-danger"></span>
+            <select asp-for="Bränsle" id="bränsle" class="form-select">
+                <option value="Bensin">Bensin</option>
+                <option value="Diesel">Diesel</option>
+                <option value="Elektrisk">Elektrisk</option>
+                <option value="Hybrid">Hybrid</option>
+            </select>
         </div>
         <div class="form-group w-50 p-1">
-            <label asp-for="BränsleFörbrukning" class="control-label"></label>
-            <input asp-for="BränsleFörbrukning" id="bränsleförbrukning" class="form-control" />
-            <span id="errorbränsleförbrukning" class="text-danger"></span>
-        </div>
-        <div class="form-group w-50 p-1">
-            <label asp-for="Tankvolym" class="control-label"></label>
-            <input asp-for="Tankvolym" id="tankvolym" class="form-control" />
-            <span id="errortankvolym" class="text-danger"></span>
-        </div>
-        <div class="form-group w-50 p-1">
-            <label asp-for="MaxMotoreffekt" class="control-label"></label>
-            <input asp-for="MaxMotoreffekt" id="maxmotoreffekt" class="form-control" />
-            <span id="errormaxmotoreffekt" class="text-danger"></span>
+            <label asp-for="Växellåda" class="control-label"></label>
+            <span id="errorväxellåda" class="text-danger"></span>
+            <select asp-for="Växellåda" id="växellåda" class="form-select">
+                <option value="Automatisk">Automatisk</option>
+                <option value="Manuell">Manuell</option>
+            </select>
         </div>
         <div class="form-group w-50 p-1">
             <label asp-for="Beskrivning" class="control-label"></label>
-            <textarea asp-for="Beskrivning" id="beskrivning" class="form-control"></textarea>
             <span id="errorbeskrivning" class="text-danger"></span>
+            <textarea asp-for="Beskrivning" id="beskrivning" class="form-control"></textarea>
         </div>
         <div class="form-group w-50 p-1 justify-content-evenly align-content-center">
             <input type="button" value="Ny bild" onclick="nyBild()" class="btn btn-secondary" />
-            <input type="button" value="Skapa bil" onclick="skapaBil()" class="btn btn-primary" />
             <span id="errorbilder" class="text-danger"></span>
+            <input type="button" value="Skapa bil" onclick="skapaBil()" class="btn btn-primary" />
+            <span id="result"></span>
         </div>
         <div class="d-flex flex-wrap flex-row justify-content-between w-100" id="nybild">
             <div class="form-group w-50 p-1" id="bild0container">
@@ -67,14 +69,13 @@
                     <input type="text" class="form-control" id="bild0" onchange="nyImg(this)" placeholder="Klistra in bild-url" />
                     <input type="button" class="btn btn-danger" id="bild0tabort" onclick="taBortBild(this)" value="Ta bort" />
                 </div>
-                <div class="w-100">
+                <div class="w-100 align-content-center border border-dark overflow-hidden">
                     <img id="bild0img" />
                 </div>
             </div>
         </div>
     </form>
 </div>
-<span id="result" style="text-align: center; width: 100%;"></span>
 <div>
     <a asp-action="Index">Back to List</a>
 </div>
@@ -90,7 +91,7 @@
                             <input type='text' class='form-control' id='bild${count}' onchange='nyImg(this)' placeholder='Klistra in bild-url' />
                             <input type='button' class='btn btn-danger' id='bild${count}tabort' onclick='taBortBild(this)' value='Ta bort' />
                         </div>
-                        <div class='w-100'>
+                        <div class='w-100 align-content-center border border-dark overflow-hidden'>
                             <img id='bild${count}img'/>
                         </div>
                     </div>`);
@@ -106,8 +107,8 @@
                 var heightRatio = div.getBoundingClientRect().height / image.naturalHeight;
                 var scaleFactor = Math.min(widthRatio, heightRatio);
 
-                image.style.width = (image.naturalWidth * widthRatio) + 'px';
-                image.style.height = (image.naturalHeight * heightRatio) + 'px';
+                image.style.width = (image.naturalWidth * scaleFactor) + 'px';
+                image.style.height = (image.naturalHeight * scaleFactor) + 'px';
             }
         }
 
@@ -126,16 +127,14 @@
                 var bil = {};
 
                 bil.Tillverkare = $("#tillverkare").val();
-                bil.ÅrsModell = $("#årsmodell").val();
+                bil.Årsmodell = $("#årsmodell").val();
                 bil.Modell = $("#modell").val();
-                bil.Drivlina = $("#drivlina").val();
+                bil.Drivning = $("#drivning").val();
                 bil.Bränsle = $("#bränsle").val();
-                bil.BränsleFörbrukning = $("#bränsleförbrukning").val();
-                bil.Tankvolym = $("#tankvolym").val();
-                bil.MaxMotoreffekt = $("#maxmotoreffekt").val();
+                bil.Växellåda = $("#växellåda").val();
                 bil.Beskrivning = $("#beskrivning").val();
 
-                var bilder = $("#läggtillbild > input")
+                var bilder = $("#nybild input[type='text']")
                     .map(function () {
                         return $(this).val();
                     })
@@ -162,7 +161,7 @@
                         $(xhr.responseJSON.errorProperties).each(function(index, errorProperty){
                             var element = $("#error" + errorProperty);
                             element.text("Fyll i!");
-                            console.log(element);
+                            console.log(xhr);
                         })
                     }
                 })
