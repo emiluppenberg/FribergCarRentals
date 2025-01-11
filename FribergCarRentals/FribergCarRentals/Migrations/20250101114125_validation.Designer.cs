@@ -4,6 +4,7 @@ using FribergCarRentals.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FribergCarRentals.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250101114125_validation")]
+    partial class validation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,18 +63,13 @@ namespace FribergCarRentals.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.PrimitiveCollection<string>("Bilder")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Bränsle")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("BränsleFörbrukning")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("BränsleFörbrukning")
+                        .HasColumnType("int");
 
                     b.Property<string>("Drivlina")
                         .IsRequired()
@@ -86,21 +84,42 @@ namespace FribergCarRentals.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Tankvolym")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Tankvolym")
+                        .HasColumnType("int");
 
                     b.Property<string>("Tillverkare")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("ÅrsModell")
+                    b.Property<int>("TillverkningsÅr")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.ToTable("Bilar");
+                });
+
+            modelBuilder.Entity("FribergCarRentals.Models.Bild", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BilId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("BildPath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BilId");
+
+                    b.ToTable("Bild");
                 });
 
             modelBuilder.Entity("FribergCarRentals.Models.Bokning", b =>
@@ -188,6 +207,17 @@ namespace FribergCarRentals.Migrations
                     b.ToTable("Kunder");
                 });
 
+            modelBuilder.Entity("FribergCarRentals.Models.Bild", b =>
+                {
+                    b.HasOne("FribergCarRentals.Models.Bil", "Bil")
+                        .WithMany("Bilder")
+                        .HasForeignKey("BilId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Bil");
+                });
+
             modelBuilder.Entity("FribergCarRentals.Models.Bokning", b =>
                 {
                     b.HasOne("FribergCarRentals.Models.Bil", "Bil")
@@ -205,6 +235,11 @@ namespace FribergCarRentals.Migrations
                     b.Navigation("Bil");
 
                     b.Navigation("Kund");
+                });
+
+            modelBuilder.Entity("FribergCarRentals.Models.Bil", b =>
+                {
+                    b.Navigation("Bilder");
                 });
 
             modelBuilder.Entity("FribergCarRentals.Models.Kund", b =>

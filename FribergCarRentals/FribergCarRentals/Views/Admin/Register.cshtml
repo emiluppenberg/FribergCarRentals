@@ -1,13 +1,14 @@
 ﻿
 @{
-    ViewData["Title"] = "LogIn";
+    ViewData["Title"] = "Register";
 }
 
-<h1>LogIn</h1>
-<form method="post" asp-action="LogIn">
+<h1>Register</h1>
+
+<form method="post" asp-action="Register">
     <label for="email">Email</label>
     <input type="text" name="email" />
     <label for="password">Lösenord</label>
     <input type="text" name="password" />
-    <button class="btn btn-dark" type="submit">Log in</button>
+    <button class="btn btn-dark" type="submit">Register</button>
 </form>

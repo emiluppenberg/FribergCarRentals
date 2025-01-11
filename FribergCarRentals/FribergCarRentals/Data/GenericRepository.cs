@@ -12,25 +12,14 @@ namespace FribergCarRentals.Data
         {
             this.context = context;
         }
-        public virtual T? Add(T entity)
+        public virtual void Add(T entity)
         {
-            if (entity != null)
-            {
-                return context.Add(entity).Entity;
-            }
-
-            return null;
+            context.Add(entity);
         }
 
-        public virtual async Task<T?> AddAsync(T entity)
+        public virtual async Task AddAsync(T entity)
         {
-            if (entity != null)
-            {
-                await context.AddAsync(entity);
-                return entity;
-            }
-
-            return null;
+            await context.AddAsync(entity);
         }
 
         public virtual void Remove(T entity)
@@ -51,26 +40,12 @@ namespace FribergCarRentals.Data
 
         public virtual IEnumerable<T>? GetAll()
         {
-            var entities = context.Set<T>().ToList();
-
-            if (entities.Count > 0)
-            {
-                return entities;
-            }
-
-            return null;
+            return context.Set<T>().ToList();
         }
 
         public virtual async Task<IEnumerable<T>?> GetAllAsync()
         {
-            var entities = await context.Set<T>().ToListAsync<T>();
-
-            if (entities.Count > 0)
-            {
-                return entities;
-            }
-
-            return null;
+            return await context.Set<T>().ToListAsync<T>();
         }
 
         public virtual T? GetById(int id)
@@ -80,9 +55,7 @@ namespace FribergCarRentals.Data
 
         public virtual async Task<T?> GetByIdAsync(int id)
         {
-            var entity = await context.FindAsync<T>(id);
-
-            return entity;
+            return await context.FindAsync<T>(id);
         }
 
         public void SaveChanges()
@@ -95,9 +68,9 @@ namespace FribergCarRentals.Data
             await context.SaveChangesAsync();
         }
 
-        public virtual T? Update(T entity)
+        public void Update(T entity)
         {
-            return context.Update<T>(entity).Entity;
+           context.Update<T>(entity);
         }
     }
 }

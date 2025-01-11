@@ -1,5 +1,8 @@
 using FribergCarRentals.Data;
 using FribergCarRentals.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace FribergCarRentals
@@ -11,15 +14,21 @@ namespace FribergCarRentals
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddControllersWithViews()
+                .AddCookieTempDataProvider();
+
+            builder.Services.AddScoped<IRepository<Admin>, AdminRepository>();
+            builder.Services.AddScoped<IRepository<Kund>, KundRepository>();
+            builder.Services.AddScoped<IRepository<Bil>, BilRepository>();
+
+            builder.Services.AddAuthentication("MyCookie")
+                .AddCookie("MyCookie");
+
             builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
             .Build()
             .GetConnectionString("AppDbContext")));
-
-            builder.Services.AddControllersWithViews();
-
-            builder.Services.AddScoped<IRepository<Admin>, AdminRepository>();
 
             var app = builder.Build();
 
@@ -36,6 +45,7 @@ namespace FribergCarRentals
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(

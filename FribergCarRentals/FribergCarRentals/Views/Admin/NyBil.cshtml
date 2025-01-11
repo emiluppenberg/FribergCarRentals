@@ -1,0 +1,171 @@
+﻿@model FribergCarRentals.Models.Viewmodels.NyBilViewmodel
+
+@{
+    ViewData["Title"] = "NyBil";
+}
+
+<h1></h1>
+
+<h4></h4>
+<hr />
+<div class="row">
+    <form asp-action="NyBil" class="d-flex flex-wrap flex-row justify-content-between">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group w-50 p-1">
+            <label asp-for="Tillverkare" class="control-label"></label>
+            <input asp-for="Tillverkare" id="tillverkare" class="form-control" />
+            <span id="errortillverkare" class="text-danger"></span>
+        </div>
+        <div class="form-group w-50 p-1">
+            <label asp-for="ÅrsModell" class="control-label"></label>
+            <input asp-for="ÅrsModell" id="årsmodell" class="form-control" />
+            <span id="errorårsmodell" class="text-danger"></span>
+        </div>
+        <div class="form-group w-50 p-1">
+            <label asp-for="Modell" class="control-label"></label>
+            <input asp-for="Modell" id="modell" class="form-control" />
+            <span id="errormodell" class="text-danger"></span>
+        </div>
+        <div class="form-group w-50 p-1">
+            <label asp-for="Drivlina" class="control-label"></label>
+            <input asp-for="Drivlina" id="drivlina" class="form-control" />
+            <span id="errordrivlina" class="text-danger"></span>
+        </div>
+        <div class="form-group w-50 p-1">
+            <label asp-for="Bränsle" class="control-label"></label>
+            <input asp-for="Bränsle" id="bränsle" class="form-control" />
+            <span id="errorbränsle" class="text-danger"></span>
+        </div>
+        <div class="form-group w-50 p-1">
+            <label asp-for="BränsleFörbrukning" class="control-label"></label>
+            <input asp-for="BränsleFörbrukning" id="bränsleförbrukning" class="form-control" />
+            <span id="errorbränsleförbrukning" class="text-danger"></span>
+        </div>
+        <div class="form-group w-50 p-1">
+            <label asp-for="Tankvolym" class="control-label"></label>
+            <input asp-for="Tankvolym" id="tankvolym" class="form-control" />
+            <span id="errortankvolym" class="text-danger"></span>
+        </div>
+        <div class="form-group w-50 p-1">
+            <label asp-for="MaxMotoreffekt" class="control-label"></label>
+            <input asp-for="MaxMotoreffekt" id="maxmotoreffekt" class="form-control" />
+            <span id="errormaxmotoreffekt" class="text-danger"></span>
+        </div>
+        <div class="form-group w-50 p-1">
+            <label asp-for="Beskrivning" class="control-label"></label>
+            <textarea asp-for="Beskrivning" id="beskrivning" class="form-control"></textarea>
+            <span id="errorbeskrivning" class="text-danger"></span>
+        </div>
+        <div class="form-group w-50 p-1 justify-content-evenly align-content-center">
+            <input type="button" value="Ny bild" onclick="nyBild()" class="btn btn-secondary" />
+            <input type="button" value="Skapa bil" onclick="skapaBil()" class="btn btn-primary" />
+            <span id="errorbilder" class="text-danger"></span>
+        </div>
+        <div class="d-flex flex-wrap flex-row justify-content-between w-100" id="nybild">
+            <div class="form-group w-50 p-1" id="bild0container">
+                <div class="d-flex flex-row">
+                    <input type="text" class="form-control" id="bild0" onchange="nyImg(this)" placeholder="Klistra in bild-url" />
+                    <input type="button" class="btn btn-danger" id="bild0tabort" onclick="taBortBild(this)" value="Ta bort" />
+                </div>
+                <div class="w-100">
+                    <img id="bild0img" />
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<span id="result" style="text-align: center; width: 100%;"></span>
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    <script>
+        function nyBild() {
+                var count = $("#nybild >div").length;
+
+                $("#nybild").append(
+                    `<div class='form-group w-50 p-1' id='bild${count}container'>
+                        <div class='d-flex flex-row'>
+                            <input type='text' class='form-control' id='bild${count}' onchange='nyImg(this)' placeholder='Klistra in bild-url' />
+                            <input type='button' class='btn btn-danger' id='bild${count}tabort' onclick='taBortBild(this)' value='Ta bort' />
+                        </div>
+                        <div class='w-100'>
+                            <img id='bild${count}img'/>
+                        </div>
+                    </div>`);
+                }
+
+        function nyImg(input){
+            var image = document.getElementById(input.id + "img");
+            var div = image.parentElement;
+            div.style.height = div.getBoundingClientRect().width + "px";
+            image.src = input.value;
+            image.onload = function(){
+                var widthRatio = div.getBoundingClientRect().width / image.naturalWidth;
+                var heightRatio = div.getBoundingClientRect().height / image.naturalHeight;
+                var scaleFactor = Math.min(widthRatio, heightRatio);
+
+                image.style.width = (image.naturalWidth * widthRatio) + 'px';
+                image.style.height = (image.naturalHeight * heightRatio) + 'px';
+            }
+        }
+
+        function taBortBild(input){
+            var div = input.parentElement;
+            var container = div.parentElement;
+            let child = container.lastElementChild;
+            while (child){
+                container.removeChild(child);
+                child = container.lastElementChild;
+            }
+            container.remove();
+        }
+
+        function skapaBil() {
+                var bil = {};
+
+                bil.Tillverkare = $("#tillverkare").val();
+                bil.ÅrsModell = $("#årsmodell").val();
+                bil.Modell = $("#modell").val();
+                bil.Drivlina = $("#drivlina").val();
+                bil.Bränsle = $("#bränsle").val();
+                bil.BränsleFörbrukning = $("#bränsleförbrukning").val();
+                bil.Tankvolym = $("#tankvolym").val();
+                bil.MaxMotoreffekt = $("#maxmotoreffekt").val();
+                bil.Beskrivning = $("#beskrivning").val();
+
+                var bilder = $("#läggtillbild > input")
+                    .map(function () {
+                        return $(this).val();
+                    })
+                    .get()
+                    .filter(function (val) {
+                        return val.length > 0;
+                    });
+
+                if (bilder.length > 0){
+                    bil.Bilder = bilder;
+                }
+
+                $.ajax({
+                    type: "POST",
+                    data: JSON.stringify(bil),
+                    url: "/Admin/NyBil",
+                    contentType: 'application/json',
+                    success: function(response) {
+                        $("#result").text(response.result);
+                    },
+                    error: function(xhr){
+                        $(".text-danger").text("");
+
+                        $(xhr.responseJSON.errorProperties).each(function(index, errorProperty){
+                            var element = $("#error" + errorProperty);
+                            element.text("Fyll i!");
+                            console.log(element);
+                        })
+                    }
+                })
+            }
+    </script>
+}
