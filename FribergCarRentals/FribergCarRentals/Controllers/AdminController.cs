@@ -49,20 +49,22 @@ namespace FribergCarRentals.Controllers
 
         public IActionResult NyBil()
         {
-            var model = new NyBilViewmodel();
+            var model = new Bil();
             return View(model);
         }
         [HttpPost]
-        public async Task<IActionResult> NyBil([FromBody] NyBilViewmodel model)
+        public async Task<IActionResult> NyBil([FromBody] Bil model)
         {
             if (!ModelState.IsValid)
             {
-                var errorProperties = ModelState.Values
-                    .SelectMany(x => x.Errors)
-                    .Select(x => x.ErrorMessage)
-                    .ToList();
+                var errors = ModelState
+                    .Where(m => m.Value.Errors.Any())
+                    .ToDictionary(
+                        m => m.Key,
+                        m => m.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
 
-                return BadRequest(new { ErrorProperties = errorProperties });
+                return Json(new { success = false, errors });
             }
 
             var bilder = new List<string>();
@@ -91,11 +93,11 @@ namespace FribergCarRentals.Controllers
             {
                 await bilRepository.AddAsync(bil);
                 await bilRepository.SaveChangesAsync();
-                return Json(new { result = "Bilen har lagts till!" });
+                return Json(new { success = true, result = "Bilen har lagts till!" });
             }
             catch(Exception ex)
             {
-                return Json(new { result = ex.Message });
+                return Json(new { success = true, result = ex.Message });
             }
         }
 

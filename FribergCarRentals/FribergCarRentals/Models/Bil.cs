@@ -33,6 +33,6 @@ namespace FribergCarRentals.Models
         public string Beskrivning { get; set; } = null!;
 
         [Required(ErrorMessage = "Bilder saknas")]
-        public virtual List<string> Bilder { get; set; } = new();
+        public virtual List<string> Bilder { get; set; } = null!;
     }
 }

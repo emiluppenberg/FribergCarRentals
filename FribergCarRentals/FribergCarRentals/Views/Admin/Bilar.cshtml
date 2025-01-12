@@ -14,7 +14,7 @@
     {
         <div class="d-flex flex-row border border-dark w-100 justify-content-between m-1">
             <div class="d-flex flex-column w-75">
-                <div class="d-flex flex-row flex-wrap w-100 justify-content-evenly p-4">
+                <div class="d-flex flex-row flex-wrap w-100 justify-content-evenly">
                     <div class="d-flex flex-column">
                         <p class="fw-bold">Tillverkare</p>
                         <p>@bil.Tillverkare</p>
@@ -40,13 +40,22 @@
                         <p>@bil.Växellåda</p>
                     </div>
                 </div>
-                <div class="d-flex flex-column w-100 align-content-center border-top border-dark p-4">
+                <div class="d-flex flex-column w-100 align-content-center border-top border-dark">
                     <p class="fw-bold text-center">Beskrivning</p>
                     <p class="text-center">@bil.Beskrivning</p>
                 </div>
             </div>
-            <div class="w-25 align-content-center border-start border-end border-dark overflow-hidden">
-                <img src="@bil.Bilder[0]" />
+            <div class="w-25 border-start border-end border-dark overflow-hidden">
+                <p class="fw-bold text-center">Bilder</p>
+                <select onchange="bytBild(this, @bil.Id)">
+                    @foreach (var bild in bil.Bilder)
+                    {
+                        <option value="@bild">@bild</option>
+                    }
+                </select>
+                    <div class="d-flex flex-row w-100 justify-content-center">
+                        <img src="@bil.Bilder[0]" id="bild-@bil.Id" class="m-auto"/>
+                    </div>
             </div>
         </div>
     }
@@ -64,9 +73,9 @@
 
         function resizeImg(image){
             var div = image.parentElement;
-            console.log(div.style.height);
-            div.style.height = div.getBoundingClientRect().width + "px";
-            console.log(div.style.height);
+            var divHeight = div.getBoundingClientRect().width / 10 * 7;
+            div.style.height = divHeight + "px";
+
             if (!image.naturalWidth || !image.naturalHeight){
                 image.onload = () => resizeImg(image);
                 return;
@@ -78,6 +87,12 @@
 
             image.style.width = (image.naturalWidth * scaleFactor) + 'px';
             image.style.height = (image.naturalHeight * scaleFactor) + 'px';
+        }
+
+        function bytBild(select, bilId){
+            var image = document.getElementById("bild-" + bilId);
+            image.src = select.value;
+            resizeImg(image);
         }
     </script>
 }
