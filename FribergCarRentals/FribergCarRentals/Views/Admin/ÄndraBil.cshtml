@@ -1,7 +1,7 @@
 ﻿@model FribergCarRentals.Models.Bil
 
 @{
-    ViewData["Title"] = "Ny bil";
+    ViewData["Title"] = "Ändra bil";
 }
 
 <h1></h1>
@@ -9,7 +9,8 @@
 <h4></h4>
 <hr />
 <div class="row">
-    <form asp-action="NyBil" class="d-flex flex-wrap flex-row justify-content-between">
+    <form class="d-flex flex-wrap flex-row justify-content-between">
+        <input type="hidden" id="id" value="@Model.Id" />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <div class="form-group w-50 p-1">
             <label asp-for="Tillverkare" class="control-label"></label>
@@ -59,48 +60,127 @@
         </div>
         <div class="form-group w-50 p-1 justify-content-evenly align-content-center">
             <input type="button" value="Ny bild" onclick="nyBild()" class="btn btn-secondary" />
-            <input type="button" value="Skapa bil" onclick="skapaBil()" class="btn btn-primary" />
+            <input type="button" value="Spara ändringar" onclick="ändraBil()" class="btn btn-primary" />
             <span id="result"></span>
             <a asp-action="Bilar" class="btn btn-primary">Tillbaka</a>
-            <a id="nybilbutton" asp-action="NyBil" class="btn btn-primary" style="display: none;">Ny bil</a>
         </div>
         <div class="d-flex flex-row w-100 justify-content-center">
             <h5>Bilder</h5>
             <span id="errorBilder" class="text-danger"></span>
         </div>
-        <div class="d-flex flex-wrap flex-row justify-content-between w-100" id="nybild">
-            <div class="form-group w-50 p-1" id="bild0container">
-                <div class="d-flex flex-row">
-                    <input type="text" class="form-control" id="bild0" onchange="nyImg(this)" placeholder="Klistra in bild-url" />
-                    <input type="button" class="btn btn-danger" id="bild0tabort" onclick="taBortBild(this)" value="Ta bort" />
-                </div>
-                <div class="w-100 align-content-center border border-dark overflow-hidden">
-                    <img id="bild0img" />
-                </div>
-            </div>
+        <div class="d-flex flex-wrap flex-row justify-content-between w-100" id="bilder">
+            @{
+                int count = 0;
+                foreach (var bild in Model.Bilder)
+                {
+                    <div class="form-group w-50 p-1" id="bild-@count-container">
+                        <div class="d-flex flex-row">
+                            <input type="text" class="form-control" onchange="nyImg(this)" id="bild-@count" value="@bild" />
+                            <input type="button" class="btn btn-danger" onclick="taBortBild(this)" id="bild-@count-tabort" value="Ta bort" />
+                        </div>
+                        <div class="w-100 align-content-center border border-dark overflow-hidden">
+                            <img src="@bild" id="bild-@count-img" />
+                        </div>
+                    </div>
+                }
+            }
         </div>
     </form>
-</div>
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {
     <script>
-        function nyBild() {
-                var count = $("#nybild >div").length;
+        window.onload = function () {
+            var images = document.querySelectorAll('img');
 
-                $("#nybild").append(
-                    `<div class='form-group w-50 p-1' id='bild${count}container'>
+            images.forEach(function (image){
+                resizeImg(image);
+            });
+        }
+
+        function nyBild() {
+                var count = $("#bilder >div").length;
+
+                $("#bilder").append(
+                    `<div class='form-group w-50 p-1' id='bild-${count}-container'>
                         <div class='d-flex flex-row'>
-                            <input type='text' class='form-control' id='bild${count}' onchange='nyImg(this)' placeholder='Klistra in bild-url' />
-                            <input type='button' class='btn btn-danger' id='bild${count}tabort' onclick='taBortBild(this)' value='Ta bort' />
+                            <input type='text' class='form-control' id='bild-${count}' onchange='nyImg(this)' placeholder='Klistra in bild-url' />
+                            <input type='button' class='btn btn-danger' id='bild-${count}-tabort' onclick='taBortBild(this)' value='Ta bort' />
                         </div>
                         <div class='w-100 align-content-center border border-dark overflow-hidden'>
-                            <img id='bild${count}img'/>
+                            <img id='bild-${count}-img'/>
                         </div>
                     </div>`);
                 }
+
+        function nyImg(input){
+            var image = document.getElementById(input.id + "-img");
+            var div = image.parentElement;
+            div.style.height = div.getBoundingClientRect().width + "px";
+            image.src = input.value;
+            resizeImg(image);
+        }
+
+        function taBortBild(input){
+            var div = input.parentElement;
+            var container = div.parentElement;
+            let child = container.lastElementChild;
+            while (child){
+                container.removeChild(child);
+                child = container.lastElementChild;
+            }
+            container.remove();
+        }
+
+        function ändraBil() {
+                var bil = {};
+
+                bil.Id = $("#id").val();
+                bil.Tillverkare = $("#tillverkare").val();
+                bil.Årsmodell = $("#årsmodell").val();
+                bil.Modell = $("#modell").val();
+                bil.Drivning = $("#drivning").val();
+                bil.Bränsle = $("#bränsle").val();
+                bil.Växellåda = $("#växellåda").val();
+                bil.Beskrivning = $("#beskrivning").val();
+
+                var bilder = $("#bilder input[type='text']")
+                    .map(function () {
+                        return $(this).val();
+                    })
+                    .get()
+                    .filter(function (val) {
+                        return val.length > 0;
+                    });
+
+                if (bilder.length > 0){
+                    bil.Bilder = bilder;
+                }
+
+                $.ajax({
+                    type: "POST",
+                    data: JSON.stringify(bil),
+                    url: "/Admin/ÄndraBil",
+                    contentType: 'application/json',
+                    success: function(response) {
+                        if (response.success){
+                            $("input, textarea, select").prop("disabled", true).addClass("disabled");
+                            $("#result").text(response.result);
+                        }
+                        if (!response.success && response.errors){
+                            for (const key in response.errors){
+                                $(`#error${key}`).text(response.errors[key].join(""));
+                            }
+                        }
+                        if (!response.success && response.result){
+                            $("#result").text(response.result);
+                        }
+                        if (!response.success && response.exception){
+                            window.location.href = '/Home/Error?exception=' + encodeURIComponent(response.exception);
+                        }
+                    }
+                });
+            }
 
         function resizeImg(image){
             var div = image.parentElement;
@@ -119,68 +199,5 @@
             image.style.width = (image.naturalWidth * scaleFactor) + 'px';
             image.style.height = (image.naturalHeight * scaleFactor) + 'px';
         }
-
-        function nyImg(input){
-            var image = document.getElementById(input.id + "img");
-            var div = image.parentElement;
-            div.style.height = div.getBoundingClientRect().width + "px";
-            image.src = input.value;
-            resizeImg(image);
-        }
-
-        function taBortBild(input){
-            var div = input.parentElement;
-            var container = div.parentElement;
-            let child = container.lastElementChild;
-            while (child){
-                container.removeChild(child);
-                child = container.lastElementChild;
-            }
-            container.remove();
-        }
-
-        function skapaBil() {
-                var bil = {};
-
-                bil.Tillverkare = $("#tillverkare").val();
-                bil.Årsmodell = $("#årsmodell").val();
-                bil.Modell = $("#modell").val();
-                bil.Drivning = $("#drivning").val();
-                bil.Bränsle = $("#bränsle").val();
-                bil.Växellåda = $("#växellåda").val();
-                bil.Beskrivning = $("#beskrivning").val();
-
-                var bilder = $("#nybild input[type='text']")
-                    .map(function () {
-                        return $(this).val();
-                    })
-                    .get()
-                    .filter(function (val) {
-                        return val.length > 0;
-                    });
-                    
-                if (bilder.length > 0){
-                    bil.Bilder = bilder;
-                }
-
-                $.ajax({
-                    type: "POST",
-                    data: JSON.stringify(bil),
-                    url: "/Admin/NyBil",
-                    contentType: 'application/json',
-                    success: function(response) {
-                        if (response.success){
-                            $("input, textarea, select").prop("disabled", true).addClass("disabled");
-                            document.getElementById("nybilbutton").style.display = 'inline';
-                            $("#result").text(response.result);
-                        }
-                        else {
-                            for (const key in response.errors){
-                                $(`#error${key}`).text(response.errors[key].join(""));
-                            }
-                        }
-                    }
-                });
-            }
     </script>
 }

@@ -6,13 +6,26 @@
 
 <div class="text-center">
     <h1>Våra bilar</h1>
-    <input type="button" class="btn btn-primary" value="Ny bil" asp-action="NyBil" />
+    <a class="btn btn-primary" asp-action="NyBil">Ny bil</a>
 </div>
+    <p class="text-danger text-center m-0" id="result"></p>
 
 <div class="d-flex flex-column">
     @foreach (var bil in Model)
     {
-        <div class="d-flex flex-row border border-dark w-100 justify-content-between m-1">
+        <div class="flex-row border border-dark w-100 justify-content-between m-1" style="display: flex;" id="container-@bil.Id">
+            <div class="w-25 border-start border-end border-dark overflow-hidden">
+                <p class="fw-bold text-center">Bilder</p>
+                <select onchange="bytBild(this, @bil.Id)">
+                    @foreach (var bild in bil.Bilder)
+                    {
+                        <option value="@bild">@bild</option>
+                    }
+                </select>
+                <div class="d-flex flex-row w-100 justify-content-center">
+                    <img src="@bil.Bilder[0]" id="bild-@bil.Id" class="my-auto" />
+                </div>
+            </div>
             <div class="d-flex flex-column w-75">
                 <div class="d-flex flex-row flex-wrap w-100 justify-content-evenly">
                     <div class="d-flex flex-column">
@@ -44,18 +57,15 @@
                     <p class="fw-bold text-center">Beskrivning</p>
                     <p class="text-center">@bil.Beskrivning</p>
                 </div>
-            </div>
-            <div class="w-25 border-start border-end border-dark overflow-hidden">
-                <p class="fw-bold text-center">Bilder</p>
-                <select onchange="bytBild(this, @bil.Id)">
-                    @foreach (var bild in bil.Bilder)
-                    {
-                        <option value="@bild">@bild</option>
-                    }
-                </select>
-                    <div class="d-flex flex-row w-100 justify-content-center">
-                        <img src="@bil.Bilder[0]" id="bild-@bil.Id" class="m-auto"/>
-                    </div>
+                <div class="flex-row align-content-end" style="height: 100%;" id="ändratabort-@bil.Id">
+                    <a class="btn btn-dark m-1" style="height: 2em;" asp-action="ÄndraBil" asp-route-id="@bil.Id">Ändra</a>
+                    <button class="btn btn-dark m-1" style="height: 2em;" onclick="frågaTaBort(@bil.Id)">Ta bort</button>
+                </div>
+                <div class="flex-row align-content-end" style="height: 100%; display: none;" id="janej-@bil.Id">
+                    <p class="text-danger">Ta bort denna bil?</p>
+                    <button class="btn btn-secondary m-1" style="height: 2em;" onclick="jaTaBort(@bil.Id)">Ja</button>
+                    <button class="btn btn-secondary m-1" style="height: 2em;" onclick="nejTaBort(@bil.Id)">Nej</button>
+                </div>
             </div>
         </div>
     }
@@ -93,6 +103,33 @@
             var image = document.getElementById("bild-" + bilId);
             image.src = select.value;
             resizeImg(image);
+        }
+
+        function frågaTaBort(bilId){
+            document.getElementById("ändratabort-" + bilId).style.display = 'none';
+            document.getElementById("janej-" + bilId).style.display = 'block';
+        }
+
+        function nejTaBort(bilId){
+            document.getElementById("janej-" + bilId).style.display = 'none';
+            document.getElementById("ändratabort-" + bilId).style.display = 'block';
+        }
+
+        function jaTaBort(bilId){
+            $.ajax({
+                type: "DELETE",
+                url: "/Admin/TaBortBil/" + bilId,
+                success: function(response){
+                    if (response.success){
+                        document.getElementById("result").textContent = response.result;
+                        document.getElementById("container-" + bilId).style.display = 'none';
+                    }
+                    else {
+                        document.getElementById("result").textContent = response.result;
+                        nejTaBort(bilId);
+                    }
+                }
+            })
         }
     </script>
 }

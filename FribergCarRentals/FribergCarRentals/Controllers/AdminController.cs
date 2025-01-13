@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Abstractions;
 using System.Security.Claims;
 
 namespace FribergCarRentals.Controllers
@@ -47,6 +48,7 @@ namespace FribergCarRentals.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        [HttpGet]
         public IActionResult NyBil()
         {
             var model = new Bil();
@@ -101,11 +103,93 @@ namespace FribergCarRentals.Controllers
             }
         }
 
+        [HttpGet]
         public async Task<IActionResult> Bilar()
         {
             var bilar = await bilRepository.GetAllAsync();
 
             return View(bilar);
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> TaBortBil(int id)
+        {
+            try
+            {
+                var bil = await bilRepository.GetByIdAsync(id);
+
+                if (bil == null)
+                {
+                    return Json(new { success = false, result = "Bilen kunde inte hittas i databasen" });
+                }
+
+                bilRepository.Remove(bil);
+                await bilRepository.SaveChangesAsync();
+                return Json(new { success = true, result = "Bilen har tagits bort" });
+            }
+            catch(Exception ex)
+            {
+                return RedirectToAction("Error", "Home", ex);
+            }
+        }
+
+        [HttpGet]
+        public IActionResult ÄndraBil(int id)
+        {
+            var bil = bilRepository.GetById(id);
+            return View(bil);
+        }
+        [HttpPost]
+        public async Task<IActionResult> ÄndraBil([FromBody] Bil model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                    .Where(m => m.Value.Errors.Any())
+                    .ToDictionary(
+                        m => m.Key,
+                        m => m.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+
+                return Json(new { success = false, errors });
+            }
+
+            var bilder = new List<string>();
+
+            foreach (var bild in model.Bilder)
+            {
+                if (bild != string.Empty)
+                {
+                    bilder.Add(bild);
+                }
+            }
+
+            var bil = await bilRepository.GetByIdAsync(model.Id);
+
+            if (bil == null)
+            {
+                return Json(new { success = false, result = "Bilen kunde inte hittas i databasen" });
+            }
+
+            bil.Tillverkare = model.Tillverkare;
+            bil.Årsmodell = model.Årsmodell;
+            bil.Modell = model.Modell;
+            bil.Bränsle = model.Bränsle;
+            bil.Växellåda = model.Växellåda;
+            bil.Drivning = model.Drivning;
+            bil.Beskrivning = model.Beskrivning;
+            bil.Bilder = bilder;
+
+            try
+            {
+                bilRepository.Update(bil);
+                await bilRepository.SaveChangesAsync();
+                return Json(new { success = true, result = "Bilen har ändrats" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, exception = ex.Message });
+            }
         }
     }
 }

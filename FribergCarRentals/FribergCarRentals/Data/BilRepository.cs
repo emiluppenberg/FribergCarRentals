@@ -7,15 +7,5 @@ namespace FribergCarRentals.Data
         public BilRepository(AppDbContext context) : base(context)
         {
         }
-
-        public override void Add(Bil entity)
-        {
-            base.Add(entity);
-        }
-
-        public override Task AddAsync(Bil entity)
-        {
-            return base.AddAsync(entity);
-        }
     }
 }
