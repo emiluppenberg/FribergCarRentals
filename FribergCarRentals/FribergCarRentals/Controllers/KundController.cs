@@ -17,17 +17,19 @@ namespace FribergCarRentals.Controllers
             this.kundRepository = kundRepository;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string? returnUrl)
         {
+            ViewBag.ReturnUrl = returnUrl;
+            return View();
+        }
+        public IActionResult Registrera(string? returnUrl)
+        {
+            ViewBag.ReturnUrl = returnUrl;
             return View();
         }
 
-        public IActionResult LogIn()
-        {
-            return View();
-        }
         [HttpPost]
-        public async Task<IActionResult> LogIn(string email, string password)
+        public async Task<IActionResult> LoggaIn(string email, string password, string? returnUrl)
         {
             var kund = await kundRepository.FirstOrDefaultAsync(k => k.Email == email && k.Lösenord == password);
 
@@ -36,13 +38,55 @@ namespace FribergCarRentals.Controllers
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Role, "kund"),
-                    new Claim(ClaimTypes.NameIdentifier, kund.Email)
+                    new Claim(ClaimTypes.NameIdentifier, kund.Id.ToString()),
+                    new Claim(ClaimTypes.Name, kund.Email)
                 };
 
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principal = new ClaimsPrincipal(identity);
 
                 await HttpContext.SignInAsync("MyCookie", principal);
+
+                if (returnUrl != null)
+                {
+                    return LocalRedirect(returnUrl);
+                }
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Registrera(Kund kund, string? returnUrl)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(kund);
+            }
+
+            if (await kundRepository.FirstOrDefaultAsync(x => x.Email == kund.Email) != null)
+            {
+                ModelState.AddModelError("Email", "Det finns redan en kund med denna email adress");
+                return View(kund);
+            }
+
+            await kundRepository.AddAsync(kund);
+            await kundRepository.SaveChangesAsync();
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Role, "kund"),
+                new Claim(ClaimTypes.NameIdentifier, kund.Email)
+            };
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            await HttpContext.SignInAsync("MyCookie", principal);
+
+            if (returnUrl != null)
+            {
+                return LocalRedirect(returnUrl);
             }
 
             return RedirectToAction("Index", "Home");

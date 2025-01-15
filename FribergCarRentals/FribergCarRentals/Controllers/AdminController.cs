@@ -1,6 +1,5 @@
 ﻿using FribergCarRentals.Data;
 using FribergCarRentals.Models;
-using FribergCarRentals.Models.Viewmodels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -21,13 +20,14 @@ namespace FribergCarRentals.Controllers
             this.bilRepository = bilRepository;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string? returnUrl)
         {
+            ViewBag.ReturnUrl = returnUrl;
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> LogIn(string email, string password)
+        public async Task<IActionResult> LoggaIn(string email, string password, string? returnUrl)
         {
             var admin = await adminRepository.FirstOrDefaultAsync(a => a.Email == email && a.Lösenord == password);
 
@@ -36,13 +36,16 @@ namespace FribergCarRentals.Controllers
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Role, "admin"),
-                    new Claim(ClaimTypes.NameIdentifier, admin.Email),
+                    new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString()),
+                    new Claim(ClaimTypes.Name, admin.Email)
                 };
 
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principal = new ClaimsPrincipal(identity);
 
                 await HttpContext.SignInAsync("MyCookie", principal);
+
+                return LocalRedirect(returnUrl);
             }
 
             return RedirectToAction("Index", "Home");
@@ -51,6 +54,12 @@ namespace FribergCarRentals.Controllers
         [HttpGet]
         public IActionResult NyBil()
         {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            {
+                string returnUrl = HttpContext.Request.Path;
+                return RedirectToAction("Index", new { returnUrl = returnUrl });
+            }
+
             var model = new Bil();
             return View(model);
         }
@@ -106,6 +115,12 @@ namespace FribergCarRentals.Controllers
         [HttpGet]
         public async Task<IActionResult> Bilar()
         {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            {
+                string returnUrl = HttpContext.Request.Path;
+                return RedirectToAction("Index", new { returnUrl = returnUrl });
+            }
+
             var bilar = await bilRepository.GetAllAsync();
 
             return View(bilar);
@@ -114,6 +129,12 @@ namespace FribergCarRentals.Controllers
         [HttpDelete]
         public async Task<IActionResult> TaBortBil(int id)
         {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            {
+                string returnUrl = HttpContext.Request.Path;
+                return RedirectToAction("Index", new { returnUrl = returnUrl });
+            }
+
             try
             {
                 var bil = await bilRepository.GetByIdAsync(id);
@@ -136,6 +157,12 @@ namespace FribergCarRentals.Controllers
         [HttpGet]
         public IActionResult ÄndraBil(int id)
         {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            {
+                string returnUrl = HttpContext.Request.Path;
+                return RedirectToAction("Index", new { returnUrl = returnUrl });
+            }
+
             var bil = bilRepository.GetById(id);
             return View(bil);
         }

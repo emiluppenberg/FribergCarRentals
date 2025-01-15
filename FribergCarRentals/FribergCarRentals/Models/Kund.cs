@@ -26,7 +26,7 @@ namespace FribergCarRentals.Models
         [MaxLength(100)]
         public string Efternamn { get; set; } = null!;
 
-        [Required(ErrorMessage = "Telefon nummer saknas")]
+        [Required(ErrorMessage = "Telefonnummer saknas")]
         [MaxLength(20)]
         public string TelefonNummer { get; set; } = null!;
 

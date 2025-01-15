@@ -6,7 +6,7 @@ namespace FribergCarRentals.Data
 {
     public abstract class GenericRepository<T> : IRepository<T> where T : class
     {
-        private readonly AppDbContext context;
+        protected readonly AppDbContext context;
 
         public GenericRepository(AppDbContext context)
         {

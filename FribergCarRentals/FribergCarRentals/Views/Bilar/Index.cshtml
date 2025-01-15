@@ -1,0 +1,145 @@
+﻿@model IEnumerable<FribergCarRentals.Models.Bil>
+
+@{
+    ViewData["Title"] = "Bilar";
+}
+
+<div class="text-center">
+    <h1>Våra bilar</h1>
+</div>
+<p class="text-danger text-center m-0" id="result"></p>
+<div class="d-flex flex-column">
+    @foreach (var bil in Model)
+    {
+        <div class="flex-row border border-dark w-100 justify-content-between m-1" style="display: flex;" id="container-@bil.Id">
+            <div class="w-25 border-start border-end border-dark overflow-hidden">
+                <p class="fw-bold text-center">Bilder</p>
+                <select onchange="bytBild(this, @bil.Id)">
+                    @foreach (var bild in bil.Bilder)
+                    {
+                        <option value="@bild">@bild</option>
+                    }
+                </select>
+                <div class="d-flex flex-row w-100 justify-content-center">
+                    <img src="@bil.Bilder[0]" id="bild-@bil.Id" class="my-auto" />
+                </div>
+            </div>
+            <div class="d-flex flex-column w-75">
+                <div class="d-flex flex-row flex-wrap w-100 justify-content-evenly">
+                    <div class="d-flex flex-column">
+                        <p class="fw-bold">Tillverkare</p>
+                        <p>@bil.Tillverkare</p>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <p class="fw-bold">Årsmodell</p>
+                        <p>@bil.Årsmodell</p>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <p class="fw-bold">Modell</p>
+                        <p>@bil.Modell</p>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <p class="fw-bold">Drivning</p>
+                        <p>@bil.Drivning</p>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <p class="fw-bold">Bränsle</p>
+                        <p>@bil.Bränsle</p>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <p class="fw-bold">Växellåda</p>
+                        <p>@bil.Växellåda</p>
+                    </div>
+                </div>
+                <div class="d-flex flex-column w-100 align-content-center border-top border-dark">
+                    <p class="fw-bold text-center">Beskrivning</p>
+                    <p class="text-center">@bil.Beskrivning</p>
+                </div>
+                <div class="flex-row align-content-end" style="height: 100%;" id="ändratabort-@bil.Id">
+                    <button type="button" class="btn btn-dark m-1" style="height: 2em;" data-bs-toggle="collapse" data-bs-target="#boka-@bil.Id">Boka</button>
+                </div>
+            </div>
+        </div>
+        <div id="boka-@bil.Id" class="collapse mx-1 w-100">
+            <div class="card card-body">
+                <div id="bokningar-@bil.Id">
+                    <p class="fw-bold">Uppbokade datum:</p>
+                    @foreach (var bokning in bil.Bokningar)
+                    {
+                        <p class="text-danger">@bokning.Startdatum.ToShortDateString() - @bokning.Slutdatum.ToShortDateString()</p>
+                    }
+                </div>
+                <form>
+                    <label for="startdatum">Startdatum</label>
+                    <input type="date" id="startdatum-@bil.Id" name="startdatum" class="form-control" />
+                    <label for="slutdatum">Slutdatum</label>
+                    <input type="date" id="slutdatum-@bil.Id" name="slutdatum" class="form-control" />
+                    <div class="d-flex flex-row">
+                        <button type="button" class="btn btn-dark m-1" onclick="bokaBil(@bil.Id)">Boka</button>
+                        <p class="m-1 fs-4" id="result-@bil.Id"></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function bokaBil(bilId){
+            const startDatum = document.getElementById("startdatum-" + bilId).value;
+            const slutDatum = document.getElementById("slutdatum-" + bilId).value;
+
+            const data = {
+                startDatum: startDatum,
+                slutDatum: slutDatum,
+                bilId: bilId
+            };
+
+            $.ajax({
+                type: "POST",
+                data: data,
+                url: "/Bokningar/BokaBil",
+                success: function (response){
+                    document.getElementById("result-" + bilId).textContent = response.result;
+                    document.getElementById("result-" + bilId).classList.add("text-success");
+                    $(`#bokningar-${bilId}`).append(
+                        `<p class="text-danger">${response.startDatum} - ${response.slutDatum}</p>`
+                    )
+                }
+            })
+        }
+
+        window.onload = function () {
+            var images = document.querySelectorAll('img');
+
+            images.forEach(function (image){
+                resizeImg(image);
+            });
+        }
+
+        function resizeImg(image){
+            var div = image.parentElement;
+            var divHeight = div.getBoundingClientRect().width / 10 * 7;
+            div.style.height = divHeight + "px";
+
+            if (!image.naturalWidth || !image.naturalHeight){
+                image.onload = () => resizeImg(image);
+                return;
+            }
+
+            var widthRatio = div.getBoundingClientRect().width / image.naturalWidth;
+            var heightRatio = div.getBoundingClientRect().height / image.naturalHeight;
+            var scaleFactor = Math.min(widthRatio, heightRatio);
+
+            image.style.width = (image.naturalWidth * scaleFactor) + 'px';
+            image.style.height = (image.naturalHeight * scaleFactor) + 'px';
+        }
+
+        function bytBild(select, bilId){
+            var image = document.getElementById("bild-" + bilId);
+            image.src = select.value;
+            resizeImg(image);
+        }
+    </script>
+}
