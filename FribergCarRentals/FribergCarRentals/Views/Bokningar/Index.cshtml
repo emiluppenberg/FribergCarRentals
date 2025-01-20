@@ -1,0 +1,132 @@
+﻿@model List<FribergCarRentals.Models.Bokning>
+
+@{
+    ViewData["Title"] = "Mina bokningar";
+}
+
+<h1 class="text-center">Mina bokningar</h1>
+
+<div class="d-flex flex-column">
+    @foreach (var bokning in Model)
+    {
+        <p class="text-center fs-4 w-100" id="result-@bokning.Id"></p>
+        <div class="flex-row border border-dark w-100 justify-content-between m-1" style="display: flex;" id="container-@bokning.Id">
+            <div class="w-25 border-start border-end border-dark overflow-hidden">
+                <p class="fw-bold text-center">Bilder</p>
+                <select onchange="bytBild(this, @bokning.Id)">
+                    @foreach (var bild in bokning.Bil.Bilder)
+                    {
+                        <option value="@bild">@bild</option>
+                    }
+                </select>
+                <div class="d-flex flex-row w-100 justify-content-center">
+                    <img src="@bokning.Bil.Bilder[0]" id="bild-@bokning.Id" class="my-auto" />
+                </div>
+            </div>
+            <div class="d-flex flex-column w-75">
+                <div class="d-flex flex-row flex-wrap w-100 justify-content-evenly">
+                    <div class="d-flex flex-column">
+                        <p class="fw-bold">Tillverkare</p>
+                        <p>@bokning.Bil.Tillverkare</p>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <p class="fw-bold">Årsmodell</p>
+                        <p>@bokning.Bil.Årsmodell</p>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <p class="fw-bold">Modell</p>
+                        <p>@bokning.Bil.Modell</p>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <p class="fw-bold">Drivning</p>
+                        <p>@bokning.Bil.Drivning</p>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <p class="fw-bold">Bränsle</p>
+                        <p>@bokning.Bil.Bränsle</p>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <p class="fw-bold">Växellåda</p>
+                        <p>@bokning.Bil.Växellåda</p>
+                    </div>
+                </div>
+                <div class="d-flex flex-column w-100 align-content-center border-top border-dark">
+                    <p class="fw-bold text-center">Beskrivning</p>
+                    <p class="text-center">@bokning.Bil.Beskrivning</p>
+                </div>
+                <div class="d-flex flex-column justify-content-end w-100" style="height: 100%;">
+                    <p class="text-center fs-4">@bokning.Startdatum till @bokning.Slutdatum</p>
+                    <div class="flex-row justify-content-center" id="ändratabort-@bokning.Id" style="display: block;">
+                        <a class="btn btn-dark m-1" asp-action="ÄndraBokning" asp-route-bokningId="@bokning.Id">Ändra</a>
+                        <button class="btn btn-dark m-1" onclick="frågaTaBort(@bokning.Id)">Ta bort</button>
+                    </div>
+                    <div class="flex-row align-content-end" style="height: 100%; display: none;" id="janej-@bokning.Id">
+                        <p class="text-danger">Ta bort denna bokning?</p>
+                        <button class="btn btn-secondary m-1" style="height: 2em;" onclick="jaTaBort(@bokning.Id)">Ja</button>
+                        <button class="btn btn-secondary m-1" style="height: 2em;" onclick="nejTaBort(@bokning.Id)">Nej</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+            window.onload = function () {
+                var images = document.querySelectorAll('img');
+
+                images.forEach(function (image){
+                    resizeImg(image);
+                });
+            }
+
+            function resizeImg(image){
+                var div = image.parentElement;
+                var divHeight = div.getBoundingClientRect().width / 10 * 7;
+                div.style.height = divHeight + "px";
+
+                if (!image.naturalWidth || !image.naturalHeight){
+                    image.onload = () => resizeImg(image);
+                    return;
+                }
+
+                var widthRatio = div.getBoundingClientRect().width / image.naturalWidth;
+                var heightRatio = div.getBoundingClientRect().height / image.naturalHeight;
+                var scaleFactor = Math.min(widthRatio, heightRatio);
+
+                image.style.width = (image.naturalWidth * scaleFactor) + 'px';
+                image.style.height = (image.naturalHeight * scaleFactor) + 'px';
+            }
+
+            function bytBild(select, bilId){
+                var image = document.getElementById("bild-" + bilId);
+                image.src = select.value;
+                resizeImg(image);
+            }
+
+            function frågaTaBort(bokningId){
+                    document.getElementById("ändratabort-" + bokningId).style.display = 'none';
+                    document.getElementById("janej-" + bokningId).style.display = 'block';
+            }
+
+            function nejTaBort(bokningId){
+                    document.getElementById("janej-" + bokningId).style.display = 'none';
+                    document.getElementById("ändratabort-" + bokningId).style.display = 'block';
+            }
+
+            async function jaTaBort(bokningId){
+                const response = await fetch(`/Bokningar/TaBortBokning?bokningId=${bokningId}`, {method: "DELETE"})
+                const result = await response.text();
+                if (response.ok){
+                    document.getElementById("result-" + bokningId).textContent = result;
+                    document.getElementById("container-" + bokningId).style.display = 'none';
+                }
+                else {
+                    const error = encodeURIComponent(result);
+                    const returnUrl = encodeURIComponent(window.location.pathname);
+                    window.location.href = `/Home/Error?error=${error}&returnUrl=${returnUrl}`;
+                }
+            }
+    </script>
+}

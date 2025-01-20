@@ -8,11 +8,11 @@
     <h1>Våra bilar</h1>
     <a class="btn btn-primary" asp-action="NyBil">Ny bil</a>
 </div>
-    <p class="text-danger text-center m-0" id="result"></p>
 
 <div class="d-flex flex-column">
     @foreach (var bil in Model)
     {
+        <p class="text-center fs-4 w-100" id="result-@bil.Id"></p>
         <div class="flex-row border border-dark w-100 justify-content-between m-1" style="display: flex;" id="container-@bil.Id">
             <div class="w-25 border-start border-end border-dark overflow-hidden">
                 <p class="fw-bold text-center">Bilder</p>
@@ -58,13 +58,13 @@
                     <p class="text-center">@bil.Beskrivning</p>
                 </div>
                 <div class="flex-row align-content-end" style="height: 100%;" id="ändratabort-@bil.Id">
-                    <a class="btn btn-dark m-1" style="height: 2em;" asp-action="ÄndraBil" asp-route-id="@bil.Id">Ändra</a>
-                    <button class="btn btn-dark m-1" style="height: 2em;" onclick="frågaTaBort(@bil.Id)">Ta bort</button>
+                    <a class="btn btn-dark m-1" asp-action="ÄndraBil" asp-route-bilId="@bil.Id">Ändra</a>
+                    <button class="btn btn-dark m-1" onclick="frågaTaBort(@bil.Id)">Ta bort</button>
                 </div>
                 <div class="flex-row align-content-end" style="height: 100%; display: none;" id="janej-@bil.Id">
                     <p class="text-danger">Ta bort denna bil?</p>
-                    <button class="btn btn-secondary m-1" style="height: 2em;" onclick="jaTaBort(@bil.Id)">Ja</button>
-                    <button class="btn btn-secondary m-1" style="height: 2em;" onclick="nejTaBort(@bil.Id)">Nej</button>
+                    <button class="btn btn-secondary m-1" onclick="jaTaBort(@bil.Id)">Ja</button>
+                    <button class="btn btn-secondary m-1" onclick="nejTaBort(@bil.Id)">Nej</button>
                 </div>
             </div>
         </div>
@@ -115,21 +115,18 @@
             document.getElementById("ändratabort-" + bilId).style.display = 'block';
         }
 
-        function jaTaBort(bilId){
-            $.ajax({
-                type: "DELETE",
-                url: "/Admin/TaBortBil/" + bilId,
-                success: function(response){
-                    if (response.success){
-                        document.getElementById("result").textContent = response.result;
-                        document.getElementById("container-" + bilId).style.display = 'none';
-                    }
-                    else {
-                        document.getElementById("result").textContent = response.result;
-                        nejTaBort(bilId);
-                    }
-                }
-            })
+        async function jaTaBort(bilId){
+            const response = await fetch(`/Admin/TaBortBil?bilId=${bilId}`, { method: "DELETE" });
+            const result = await response.text();
+            if (response.ok){
+                document.getElementById("result-" + bilId).textContent = result;
+                document.getElementById("container-" + bilId).style.display = 'none';
+            }
+            else {
+                const returnUrl = window.location.pathname;
+                const error = encodeURIComponent(result);
+                window.location.href = `/Home/Error?error=${error}&returnUrl=${returnUrl}`;
+            }
         }
     </script>
 }

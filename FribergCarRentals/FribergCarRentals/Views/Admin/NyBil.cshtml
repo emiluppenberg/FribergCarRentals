@@ -4,10 +4,8 @@
     ViewData["Title"] = "Ny bil";
 }
 
-<h1></h1>
+<h1>Ny bil</h1>
 
-<h4></h4>
-<hr />
 <div class="row">
     <form asp-action="NyBil" class="d-flex flex-wrap flex-row justify-content-between">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -139,7 +137,7 @@
             container.remove();
         }
 
-        function skapaBil() {
+        async function skapaBil() {
                 var bil = {};
 
                 bil.Tillverkare = $("#tillverkare").val();
@@ -151,36 +149,44 @@
                 bil.Beskrivning = $("#beskrivning").val();
 
                 var bilder = $("#nybild input[type='text']")
-                    .map(function () {
+                    .map(function (){
                         return $(this).val();
                     })
                     .get()
-                    .filter(function (val) {
+                    .filter(function (val){
                         return val.length > 0;
                     });
-                    
+
                 if (bilder.length > 0){
                     bil.Bilder = bilder;
                 }
 
-                $.ajax({
-                    type: "POST",
-                    data: JSON.stringify(bil),
-                    url: "/Admin/NyBil",
-                    contentType: 'application/json',
-                    success: function(response) {
-                        if (response.success){
-                            $("input, textarea, select").prop("disabled", true).addClass("disabled");
-                            document.getElementById("nybilbutton").style.display = 'inline';
-                            $("#result").text(response.result);
-                        }
-                        else {
-                            for (const key in response.errors){
-                                $(`#error${key}`).text(response.errors[key].join(""));
-                            }
-                        }
-                    }
+                const response = await fetch("/Admin/NyBil", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify(bil)
                 });
+
+                if (response.ok){
+                    $("input, textarea, select").prop("disabled", true).addClass("disabled");
+                    document.getElementById("nybilbutton").style.display = 'inline';
+                    const result = await response.text();
+                    $("#result").text(result);
+                }
+                else {
+                    const data = await response.json();
+
+                    if (data.errors){
+                        for (const key in data.errors){
+                                $(`#error${key}`).text(data.errors[key].join(""));
+                            }
+                    }
+                    if (data.error){
+                        const returnUrl = window.location.pathname;
+                        const error = encodeURIComponent(data.error);
+                        window.location.href = `/Home/Error?error=${error}&returnUrl=${returnUrl}`;
+                    }
+                }
             }
     </script>
 }

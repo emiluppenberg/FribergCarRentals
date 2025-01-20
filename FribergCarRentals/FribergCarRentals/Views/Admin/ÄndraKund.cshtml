@@ -1,0 +1,67 @@
+﻿@model FribergCarRentals.Models.Kund
+
+@{
+    ViewData["Title"] = "ÄndraKund";
+}
+
+<h1>ÄndraKund</h1>
+
+<h4>Kund</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="ÄndraKund">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Lösenord" class="control-label"></label>
+                <input asp-for="Lösenord" class="form-control" />
+                <span asp-validation-for="Lösenord" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Förnamn" class="control-label"></label>
+                <input asp-for="Förnamn" class="form-control" />
+                <span asp-validation-for="Förnamn" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Efternamn" class="control-label"></label>
+                <input asp-for="Efternamn" class="form-control" />
+                <span asp-validation-for="Efternamn" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TelefonNummer" class="control-label"></label>
+                <input asp-for="TelefonNummer" class="form-control" />
+                <span asp-validation-for="TelefonNummer" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Adress" class="control-label"></label>
+                <input asp-for="Adress" class="form-control" />
+                <span asp-validation-for="Adress" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Postkod" class="control-label"></label>
+                <input asp-for="Postkod" class="form-control" />
+                <span asp-validation-for="Postkod" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Ort" class="control-label"></label>
+                <input asp-for="Ort" class="form-control" />
+                <span asp-validation-for="Ort" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Spara ändringar" class="btn btn-dark" />
+            </div>
+        </form>
+    </div>
+</div>
+<p class="text-center fs-4">@ViewBag.Result</p>
+
+<div>
+    <a asp-action="Kunder">Tillbaka</a>
+</div>
+

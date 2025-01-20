@@ -132,7 +132,7 @@
             container.remove();
         }
 
-        function ändraBil() {
+        async function ändraBil() {
                 var bil = {};
 
                 bil.Id = $("#id").val();
@@ -157,29 +157,31 @@
                     bil.Bilder = bilder;
                 }
 
-                $.ajax({
-                    type: "POST",
-                    data: JSON.stringify(bil),
-                    url: "/Admin/ÄndraBil",
-                    contentType: 'application/json',
-                    success: function(response) {
-                        if (response.success){
-                            $("input, textarea, select").prop("disabled", true).addClass("disabled");
-                            $("#result").text(response.result);
-                        }
-                        if (!response.success && response.errors){
-                            for (const key in response.errors){
-                                $(`#error${key}`).text(response.errors[key].join(""));
-                            }
-                        }
-                        if (!response.success && response.result){
-                            $("#result").text(response.result);
-                        }
-                        if (!response.success && response.exception){
-                            window.location.href = '/Home/Error?exception=' + encodeURIComponent(response.exception);
-                        }
-                    }
+                const response = await fetch("/Admin/ÄndraBil", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify(bil)
                 });
+
+                if (response.ok){
+                    const result = await response.text();
+                    $("input, textarea, select").prop("disabled", true).addClass("disabled");
+                    document.getElementById("result").textContent = result;
+                }
+                else {
+                    const data = await response.json();
+
+                    if (data.errors){
+                        for (const key in data.errors){
+                                $(`#error${key}`).text(data.errors[key].join(""));
+                            }
+                    }
+                    if (data.error){
+                        const returnUrl = window.location.pathname;
+                        const error = encodeURIComponent(data.error);
+                        window.location.href = `/Home/Error?error=${data.error}&returnUrl=${returnUrl}`;
+                    }
+                }
             }
 
         function resizeImg(image){

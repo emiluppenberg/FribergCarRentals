@@ -24,9 +24,11 @@ namespace FribergCarRentals.Controllers
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error(string exception)
+        public IActionResult Error(string error, string returnUrl)
         {
-            return View(exception);
+            ViewBag.Error = error;
+            ViewBag.ReturnUrl = returnUrl;
+            return View();
         }
     }
 }

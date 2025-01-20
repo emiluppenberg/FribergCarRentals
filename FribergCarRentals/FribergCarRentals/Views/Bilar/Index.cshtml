@@ -61,24 +61,24 @@
             </div>
         </div>
         <div id="boka-@bil.Id" class="collapse mx-1 w-100">
-            <div class="card card-body">
-                <div id="bokningar-@bil.Id">
+            <div class="card card-body d-flex flex-row justify-content-center">
+                <div class="d-flex flex-column mx-5">
+                    <form method="post" asp-action="NyBokning" asp-controller="Bokningar">
+                        <input type="hidden" name="bilId" value="@bil.Id" />
+                        <label for="startdatum">Startdatum</label>
+                        <input type="date" name="startDatum" class="form-control" />
+                        <label for="slutdatum">Slutdatum</label>
+                        <input type="date" name="slutDatum" class="form-control" />
+                        <input type="submit" class="btn btn-dark mt-1" value="Boka" />
+                    </form>
+                </div>
+                <div class="d-flex flex-column">
                     <p class="fw-bold">Uppbokade datum:</p>
                     @foreach (var bokning in bil.Bokningar)
                     {
-                        <p class="text-danger">@bokning.Startdatum.ToShortDateString() - @bokning.Slutdatum.ToShortDateString()</p>
+                        <p class="text-danger">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
                     }
                 </div>
-                <form>
-                    <label for="startdatum">Startdatum</label>
-                    <input type="date" id="startdatum-@bil.Id" name="startdatum" class="form-control" />
-                    <label for="slutdatum">Slutdatum</label>
-                    <input type="date" id="slutdatum-@bil.Id" name="slutdatum" class="form-control" />
-                    <div class="d-flex flex-row">
-                        <button type="button" class="btn btn-dark m-1" onclick="bokaBil(@bil.Id)">Boka</button>
-                        <p class="m-1 fs-4" id="result-@bil.Id"></p>
-                    </div>
-                </form>
             </div>
         </div>
     }
@@ -86,30 +86,6 @@
 
 @section Scripts {
     <script>
-        function bokaBil(bilId){
-            const startDatum = document.getElementById("startdatum-" + bilId).value;
-            const slutDatum = document.getElementById("slutdatum-" + bilId).value;
-
-            const data = {
-                startDatum: startDatum,
-                slutDatum: slutDatum,
-                bilId: bilId
-            };
-
-            $.ajax({
-                type: "POST",
-                data: data,
-                url: "/Bokningar/BokaBil",
-                success: function (response){
-                    document.getElementById("result-" + bilId).textContent = response.result;
-                    document.getElementById("result-" + bilId).classList.add("text-success");
-                    $(`#bokningar-${bilId}`).append(
-                        `<p class="text-danger">${response.startDatum} - ${response.slutDatum}</p>`
-                    )
-                }
-            })
-        }
-
         window.onload = function () {
             var images = document.querySelectorAll('img');
 

@@ -40,37 +40,69 @@ namespace FribergCarRentals.Data
 
         public virtual IEnumerable<T>? GetAll()
         {
-            return context.Set<T>().ToList();
+            var entities = context.Set<T>().ToList();
+
+            if (entities.Count > 0)
+            {
+                return entities;
+            }
+
+            return null;
         }
 
         public virtual async Task<IEnumerable<T>?> GetAllAsync()
         {
-            return await context.Set<T>().ToListAsync<T>();
+            var entities = await context.Set<T>().ToListAsync<T>();
+
+            if (entities.Count > 0)
+            {
+                return entities;
+            }
+
+            return null;
         }
 
-        public virtual T? GetById(int id)
+        public virtual T GetById(int id)
         {
-            return context.Find<T>(id);
+            var entity = context.Find<T>(id);
+
+            return entity ?? throw new Exception($"Objektet kunde inte hittas i databasen - {typeof(T).Name} ID: {id} ");
         }
 
-        public virtual async Task<T?> GetByIdAsync(int id)
+        public virtual async Task<T> GetByIdAsync(int id)
         {
-            return await context.FindAsync<T>(id);
+            var entity = await context.FindAsync<T>(id);
+
+            return entity ?? throw new Exception($"Objektet kunde inte hittas i databasen - {typeof(T).Name} ID: {id} ");
         }
 
-        public void SaveChanges()
+        public virtual void SaveChanges()
         {
             context.SaveChanges();
         }
 
-        public async Task SaveChangesAsync()
+        public virtual async Task SaveChangesAsync()
         {
             await context.SaveChangesAsync();
         }
 
-        public void Update(T entity)
+        public virtual void Update(T entity)
         {
            context.Update<T>(entity);
+        }
+
+        public virtual async Task<IEnumerable<T>?> FindAllAsync(Expression<Func<T, bool>> predicate)
+        {
+            var entities = await context.Set<T>()
+                .Where(predicate)
+                .ToListAsync();
+
+            if (entities.Count > 0)
+            {
+                return entities;
+            }
+
+            return null;
         }
     }
 }

@@ -76,7 +76,8 @@ namespace FribergCarRentals.Controllers
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Role, "kund"),
-                new Claim(ClaimTypes.NameIdentifier, kund.Email)
+                new Claim(ClaimTypes.NameIdentifier, kund.Id.ToString()),
+                new Claim(ClaimTypes.Name, kund.Email)
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -90,6 +91,30 @@ namespace FribergCarRentals.Controllers
             }
 
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> MinaUppgifter()
+        {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "kund"))
+            {
+                string returnUrl = HttpContext.Request.Path;
+
+                return RedirectToAction(
+                    "Error",
+                    "Home",
+                    new
+                    {
+                        error = "Inloggning krävs",
+                        returnUrl = returnUrl
+                    });
+            }
+
+            var kundId = Convert.ToInt32(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            var kund = await kundRepository.GetByIdAsync(kundId);
+
+            return View(kund);
         }
     }
 }

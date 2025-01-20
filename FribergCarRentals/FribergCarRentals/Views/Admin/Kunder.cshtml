@@ -1,0 +1,92 @@
+﻿@model IEnumerable<FribergCarRentals.Models.Kund>
+
+@{
+    ViewData["Title"] = "Kunder";
+}
+
+<h1>Kunder</h1>
+
+<p class="text-center fs-4" id="result"></p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Email)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Lösenord)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Förnamn)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Efternamn)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TelefonNummer)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Adress)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Postkod)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Ort)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Email)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Lösenord)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Förnamn)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Efternamn)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.TelefonNummer)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Adress)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Postkod)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Ort)
+                </td>
+                <td>
+                    <a class="btn btn-dark" asp-action="ÄndraKund" asp-route-kundId="@item.Id">Ändra</a>
+                    <button class="btn btn-dark" onclick="taBortKund(@item.Id)">Ta bort</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        async function taBortKund(kundId){
+            const response = await fetch(`/Admin/TaBortKund?kundId=${kundId}`, { method: 'DELETE' });
+            const result = await response.text();
+            if(response.ok){
+                document.getElementById("result").textContent = result;
+            }
+            else {
+                const error = encodeURIComponent(result);
+                const returnUrl = encodeURIComponent(window.location.pathname);
+                window.location.href = `/Home/Error?error=${error}&returnUrl=${returnUrl}`;
+            }
+        }
+    </script>
+}

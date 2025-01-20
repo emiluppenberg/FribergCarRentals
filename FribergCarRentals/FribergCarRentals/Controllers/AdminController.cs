@@ -13,13 +13,16 @@ namespace FribergCarRentals.Controllers
     {
         private readonly IRepository<Admin> adminRepository;
         private readonly IRepository<Bil> bilRepository;
+        private readonly IRepository<Kund> kundRepository;
 
-        public AdminController(IRepository<Admin> adminRepository, IRepository<Bil> bilRepository)
+        public AdminController(IRepository<Admin> adminRepository, IRepository<Bil> bilRepository, IRepository<Kund> kundRepository)
         {
             this.adminRepository = adminRepository;
             this.bilRepository = bilRepository;
+            this.kundRepository = kundRepository;
         }
 
+        [HttpGet]
         public IActionResult Index(string? returnUrl)
         {
             ViewBag.ReturnUrl = returnUrl;
@@ -45,7 +48,10 @@ namespace FribergCarRentals.Controllers
 
                 await HttpContext.SignInAsync("MyCookie", principal);
 
-                return LocalRedirect(returnUrl);
+                if (returnUrl != null)
+                {
+                    return LocalRedirect(returnUrl);
+                }
             }
 
             return RedirectToAction("Index", "Home");
@@ -61,8 +67,10 @@ namespace FribergCarRentals.Controllers
             }
 
             var model = new Bil();
+
             return View(model);
         }
+
         [HttpPost]
         public async Task<IActionResult> NyBil([FromBody] Bil model)
         {
@@ -75,12 +83,12 @@ namespace FribergCarRentals.Controllers
                         m => m.Value.Errors.Select(e => e.ErrorMessage).ToArray()
                     );
 
-                return Json(new { success = false, errors });
+                return StatusCode(400, new { errors = errors });
             }
 
             var bilder = new List<string>();
 
-            foreach(var bild in model.Bilder)
+            foreach (var bild in model.Bilder)
             {
                 if (bild != string.Empty)
                 {
@@ -104,11 +112,11 @@ namespace FribergCarRentals.Controllers
             {
                 await bilRepository.AddAsync(bil);
                 await bilRepository.SaveChangesAsync();
-                return Json(new { success = true, result = "Bilen har lagts till!" });
+                return Ok("Bilen har lagts till!");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                return Json(new { success = true, result = ex.Message });
+                return StatusCode(500, new { error = ex.Message });
             }
         }
 
@@ -127,7 +135,7 @@ namespace FribergCarRentals.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> TaBortBil(int id)
+        public async Task<IActionResult> TaBortBil(int bilId)
         {
             if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
             {
@@ -137,25 +145,21 @@ namespace FribergCarRentals.Controllers
 
             try
             {
-                var bil = await bilRepository.GetByIdAsync(id);
-
-                if (bil == null)
-                {
-                    return Json(new { success = false, result = "Bilen kunde inte hittas i databasen" });
-                }
-
+                bilId = 37;
+                var bil = await bilRepository.GetByIdAsync(bilId);
                 bilRepository.Remove(bil);
                 await bilRepository.SaveChangesAsync();
-                return Json(new { success = true, result = "Bilen har tagits bort" });
+                return Ok("Bilen har tagits bort");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                return RedirectToAction("Error", "Home", ex);
+                return StatusCode(500, ex.Message);
             }
         }
 
+        [Route("/Admin/ÄndraBil/{bilId}")]
         [HttpGet]
-        public IActionResult ÄndraBil(int id)
+        public IActionResult ÄndraBil(int bilId)
         {
             if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
             {
@@ -163,9 +167,11 @@ namespace FribergCarRentals.Controllers
                 return RedirectToAction("Index", new { returnUrl = returnUrl });
             }
 
-            var bil = bilRepository.GetById(id);
+            var bil = bilRepository.GetById(bilId);
+
             return View(bil);
         }
+
         [HttpPost]
         public async Task<IActionResult> ÄndraBil([FromBody] Bil model)
         {
@@ -178,7 +184,7 @@ namespace FribergCarRentals.Controllers
                         m => m.Value.Errors.Select(e => e.ErrorMessage).ToArray()
                     );
 
-                return Json(new { success = false, errors });
+                return StatusCode(400, new { errors = errors });
             }
 
             var bilder = new List<string>();
@@ -191,31 +197,123 @@ namespace FribergCarRentals.Controllers
                 }
             }
 
-            var bil = await bilRepository.GetByIdAsync(model.Id);
-
-            if (bil == null)
-            {
-                return Json(new { success = false, result = "Bilen kunde inte hittas i databasen" });
-            }
-
-            bil.Tillverkare = model.Tillverkare;
-            bil.Årsmodell = model.Årsmodell;
-            bil.Modell = model.Modell;
-            bil.Bränsle = model.Bränsle;
-            bil.Växellåda = model.Växellåda;
-            bil.Drivning = model.Drivning;
-            bil.Beskrivning = model.Beskrivning;
-            bil.Bilder = bilder;
-
             try
             {
+                model.Id = 37;
+                var bil = await bilRepository.GetByIdAsync(model.Id);
+
+                bil.Tillverkare = model.Tillverkare;
+                bil.Årsmodell = model.Årsmodell;
+                bil.Modell = model.Modell;
+                bil.Bränsle = model.Bränsle;
+                bil.Växellåda = model.Växellåda;
+                bil.Drivning = model.Drivning;
+                bil.Beskrivning = model.Beskrivning;
+                bil.Bilder = bilder;
+
                 bilRepository.Update(bil);
                 await bilRepository.SaveChangesAsync();
-                return Json(new { success = true, result = "Bilen har ändrats" });
+                return Ok("Bilen har ändrats");
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, exception = ex.Message });
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Kunder()
+        {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            {
+                return RedirectToAction(
+                    "Error",
+                    "Home",
+                    new
+                    {
+                        error = "Adminbehörighet krävs"
+                    });
+            }
+
+            var kunder = await kundRepository.GetAllAsync();
+
+            return View(kunder);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ÄndraKund(int kundId)
+        {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            {
+                return RedirectToAction(
+                    "Error",
+                    "Home",
+                    new
+                    {
+                        error = "Adminbehörighet krävs"
+                    });
+            }
+
+            var kund = await kundRepository.GetByIdAsync(kundId);
+
+            return View(kund);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ÄndraKund(Kund kund)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(kund);
+            }
+
+            try
+            {
+                kundRepository.Update(kund);
+                await kundRepository.SaveChangesAsync();
+                ViewBag.Result = "Ändringar sparade";
+                return View();
+            }
+            catch (Exception ex)
+            {
+                string returnUrl = HttpContext.Request.Path;
+
+                return RedirectToAction(
+                    "Error",
+                    "Home",
+                    new
+                    {
+                        error = ex.Message,
+                        returnUrl = returnUrl
+                    });
+            }
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> TaBortKund(int kundId)
+        {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            {
+                return RedirectToAction(
+                    "Error",
+                    "Home",
+                    new
+                    {
+                        error = "Adminbehörighet krävs"
+                    });
+            }
+
+            try
+            {
+                var kund = await kundRepository.GetByIdAsync(kundId);
+                kundRepository.Remove(kund);
+                await kundRepository.SaveChangesAsync();
+
+                return Ok("Kunden har tagits bort");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, ex.Message);
             }
         }
     }
