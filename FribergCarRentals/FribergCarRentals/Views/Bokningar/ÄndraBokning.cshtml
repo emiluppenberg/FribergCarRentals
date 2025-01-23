@@ -71,7 +71,7 @@
             <p class="fw-bold">Uppbokade datum:</p>
             @foreach (var bokning in Model.Bil.Bokningar)
             {
-                if (bokning.Startdatum != Model.Startdatum && bokning.Slutdatum != Model.Slutdatum)
+                if (bokning.Id != Model.Id)
                 {
                     <p class="text-danger">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
                 }
@@ -116,35 +116,28 @@
         }
 
         async function ändraBokning(bokningId){
-            if (document.getElementById("startdatum").value === "" || document.getElementById("slutdatum").value === ""){
-                document.getElementById("result").textContent = "Du måste välja startdatum och slutdatum";
-                return;
-            }
-
-            data = {
+            bokning = {
                 Startdatum: document.getElementById("startdatum").value,
                 Slutdatum: document.getElementById("slutdatum").value,
                 Id: document.getElementById("bokningId").value
             };
 
-            console.log(data);
-
             const response = await fetch(`/Bokningar/ÄndraBokning`, {
                 method: "PUT",
                 headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(data)
+                body: JSON.stringify(bokning)
             });
 
             if (response.ok){
                 const responseData = await response.json();
                 document.getElementById("datum").textContent = responseData.startDatum + " till " + responseData.slutDatum;
                 document.getElementById("result").textContent = responseData.result;
-                document.getElementById("result").classList.add("text-success");
+                document.getElementById("result").classList = "text-center fs-4 w-100 text-success"
             }
             if (response.status === 400){
                 const responseText = await response.text();
                 document.getElementById("result").textContent = responseText;
-                document.getElementById("result").classList.add("text-danger");
+                document.getElementById("result").classList = "text-center fs-4 w-100 text-danger"
             }
             if (response.status === 401 || response.status === 500) {
                 const responseText = await response.text();

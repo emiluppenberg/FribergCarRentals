@@ -14,12 +14,14 @@ namespace FribergCarRentals.Controllers
         private readonly IRepository<Admin> adminRepository;
         private readonly IRepository<Bil> bilRepository;
         private readonly IRepository<Kund> kundRepository;
+        private readonly IRepository<Bokning> bokningRepository;
 
-        public AdminController(IRepository<Admin> adminRepository, IRepository<Bil> bilRepository, IRepository<Kund> kundRepository)
+        public AdminController(IRepository<Admin> adminRepository, IRepository<Bil> bilRepository, IRepository<Kund> kundRepository, IRepository<Bokning> bokningRepository)
         {
             this.adminRepository = adminRepository;
             this.bilRepository = bilRepository;
             this.kundRepository = kundRepository;
+            this.bokningRepository = bokningRepository;
         }
 
         [HttpGet]
@@ -306,15 +308,124 @@ namespace FribergCarRentals.Controllers
             try
             {
                 var kund = await kundRepository.GetByIdAsync(kundId);
+
+                var bokningar = await bokningRepository.FindAllAsync(x => x.KundId == kund.Id);
+
+                if (bokningar!.Count() != 0)
+                {
+                    foreach (var bokning in bokningar!)
+                    {
+                        if (!bokning.Genomförd)
+                        {
+                            bokningRepository.Remove(bokning);
+                        }
+                        else
+                        {
+                            bokning.KundId = 0;
+                            bokningRepository.Update(bokning);
+                        }
+                    }
+                }
+
+                await bokningRepository.SaveChangesAsync();
+
                 kundRepository.Remove(kund);
+
                 await kundRepository.SaveChangesAsync();
 
                 return Ok("Kunden har tagits bort");
             }
             catch (Exception ex)
             {
-                return StatusCode(400, ex.Message);
+                return StatusCode(500, ex.Message);
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> KundBokningar(int kundId)
+        {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            {
+                return RedirectToAction(
+                    "Error",
+                    "Home",
+                    new
+                    {
+                        error = "Adminbehörighet krävs",
+                    });
+            }
+
+            var kund = await kundRepository.GetByIdAsync(kundId);
+
+            ViewBag.KundEmail = kund.Email;
+
+            var bokningar = await bokningRepository.FindAllAsync(x => x.KundId == kund.Id);
+
+            return View(bokningar);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> KommandeBokningar()
+        {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            {
+                return RedirectToAction(
+                    "Error",
+                    "Home",
+                    new
+                    {
+                        error = "Adminbehörighet krävs"
+                    });
+            }
+
+            var bokadeBilar = await bilRepository.FindAllAsync(x => x.Bokningar!.Count > 0);
+
+            var kommandeBokadeBilar = bokadeBilar!.ToList();
+
+            for (int i = 0; i < kommandeBokadeBilar.Count; i++)
+            {
+                kommandeBokadeBilar[i].Bokningar!.RemoveAll(x => x.Genomförd == true);
+
+                if (kommandeBokadeBilar[i].Bokningar!.Count() == 0)
+                {
+                    kommandeBokadeBilar.Remove(kommandeBokadeBilar[i]);
+                    i--;
+                }
+            }
+
+            return View(kommandeBokadeBilar);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GenomfördaBokningar()
+        {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            {
+                return RedirectToAction(
+                    "Error",
+                    "Home",
+                    new
+                    {
+                        error = "Adminbehörighet krävs"
+                    });
+            }
+
+            var bokadeBilar = await bilRepository.FindAllAsync(x => x.Bokningar!.Count > 0);
+
+            var genomfördaBokadeBilar = bokadeBilar!.ToList();
+
+            for (int i = 0; i < genomfördaBokadeBilar.Count; i++)
+            {
+                genomfördaBokadeBilar[i].Bokningar!.RemoveAll(x => x.Genomförd == false);
+
+                if (genomfördaBokadeBilar[i].Bokningar!.Count() == 0)
+                {
+                    genomfördaBokadeBilar.Remove(genomfördaBokadeBilar[i]);
+                    i--;
+                }
+            }
+
+            return View(genomfördaBokadeBilar);
         }
     }
 }

@@ -1,10 +1,10 @@
 ﻿@model List<FribergCarRentals.Models.Bokning>
 
 @{
-    ViewData["Title"] = "Mina bokningar";
+    ViewData["Title"] = "Kund bokningar";
 }
 
-<h1 class="text-center">Mina bokningar</h1>
+<h1 class="text-center">Bokningar för @ViewBag.KundEmail</h1>
 
 <div class="d-flex flex-column">
     @foreach (var bokning in Model)
@@ -82,60 +82,60 @@
 
 @section Scripts {
     <script>
-            window.onload = function () {
-                var images = document.querySelectorAll('img');
+        window.onload = function () {
+            var images = document.querySelectorAll('img');
 
-                images.forEach(function (image){
-                    resizeImg(image);
-                });
-            }
-
-            function resizeImg(image){
-                var div = image.parentElement;
-                var divHeight = div.getBoundingClientRect().width / 10 * 7;
-                div.style.height = divHeight + "px";
-
-                if (!image.naturalWidth || !image.naturalHeight){
-                    image.onload = () => resizeImg(image);
-                    return;
-                }
-
-                var widthRatio = div.getBoundingClientRect().width / image.naturalWidth;
-                var heightRatio = div.getBoundingClientRect().height / image.naturalHeight;
-                var scaleFactor = Math.min(widthRatio, heightRatio);
-
-                image.style.width = (image.naturalWidth * scaleFactor) + 'px';
-                image.style.height = (image.naturalHeight * scaleFactor) + 'px';
-            }
-
-            function bytBild(select, bilId){
-                var image = document.getElementById("bild-" + bilId);
-                image.src = select.value;
+            images.forEach(function (image){
                 resizeImg(image);
+            });
+        }
+
+        function resizeImg(image){
+            var div = image.parentElement;
+            var divHeight = div.getBoundingClientRect().width / 10 * 7;
+            div.style.height = divHeight + "px";
+
+            if (!image.naturalWidth || !image.naturalHeight){
+                image.onload = () => resizeImg(image);
+                return;
             }
 
-            function frågaTaBort(bokningId){
-                    document.getElementById("ändratabort-" + bokningId).style.display = 'none';
-                    document.getElementById("janej-" + bokningId).style.display = 'flex';
-            }
+            var widthRatio = div.getBoundingClientRect().width / image.naturalWidth;
+            var heightRatio = div.getBoundingClientRect().height / image.naturalHeight;
+            var scaleFactor = Math.min(widthRatio, heightRatio);
 
-            function nejTaBort(bokningId){
-                    document.getElementById("janej-" + bokningId).style.display = 'none';
-                    document.getElementById("ändratabort-" + bokningId).style.display = 'flex';
-            }
+            image.style.width = (image.naturalWidth * scaleFactor) + 'px';
+            image.style.height = (image.naturalHeight * scaleFactor) + 'px';
+        }
 
-            async function jaTaBort(bokningId){
-                const response = await fetch(`/Bokningar/TaBortBokning?bokningId=${bokningId}`, {method: "DELETE"})
-                const result = await response.text();
-                if (response.ok){
-                    document.getElementById("result-" + bokningId).textContent = result;
-                    document.getElementById("container-" + bokningId).style.display = 'none';
-                }
-                else {
-                    const error = encodeURIComponent(result);
-                    const returnUrl = encodeURIComponent(window.location.pathname);
-                    window.location.href = `/Home/Error?error=${error}&returnUrl=${returnUrl}`;
-                }
+        function bytBild(select, bilId){
+            var image = document.getElementById("bild-" + bilId);
+            image.src = select.value;
+            resizeImg(image);
+        }
+
+        function frågaTaBort(bokningId){
+                document.getElementById("ändratabort-" + bokningId).style.display = 'none';
+                document.getElementById("janej-" + bokningId).style.display = 'flex';
+        }
+
+        function nejTaBort(bokningId){
+                document.getElementById("janej-" + bokningId).style.display = 'none';
+                document.getElementById("ändratabort-" + bokningId).style.display = 'flex';
+        }
+
+        async function jaTaBort(bokningId){
+            const response = await fetch(`/Bokningar/TaBortBokning?bokningId=${bokningId}`, {method: "DELETE"})
+            const result = await response.text();
+            if (response.ok){
+                document.getElementById("result-" + bokningId).textContent = result;
+                document.getElementById("container-" + bokningId).style.display = 'none';
             }
+            else {
+                const error = encodeURIComponent(result);
+                const returnUrl = encodeURIComponent(window.location.pathname);
+                window.location.href = `/Home/Error?error=${error}&returnUrl=${returnUrl}`;
+            }
+        }
     </script>
 }

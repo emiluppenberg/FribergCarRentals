@@ -41,5 +41,20 @@ namespace FribergCarRentals.Helpers
 
             return true;
         }
+
+        public static bool ValidateNewBokning(Bokning bokning)
+        {
+            if(bokning.Startdatum < DateTime.Now)
+            {
+                return false;
+            }
+
+            if(bokning.Slutdatum <= DateTime.Now)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }

@@ -17,5 +17,7 @@ namespace FribergCarRentals.Models
 
         public int BilId { get; set; }
         public Bil Bil { get; set; } = null!;
+
+        public bool Genomförd { get; set; } = false;
     }
 }

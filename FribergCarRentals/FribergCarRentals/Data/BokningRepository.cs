@@ -26,5 +26,12 @@ namespace FribergCarRentals.Data
                 .ThenInclude(x => x.Bokningar)
                 .ToListAsync();
         }
+
+        public override async Task<IEnumerable<Bokning>?> GetAllAsync()
+        {
+            return await context.Bokningar
+                .Include(x => x.Bil)
+                .ToListAsync();
+        }
     }
 }

@@ -6,6 +6,8 @@ namespace FribergCarRentals.Models
     {
         public int Id { get; set; }
 
+        public bool ÄrAktiv { get; set; } = true;
+
         [Required(ErrorMessage = "Tillverkare saknas")]
         [MaxLength(100)]
         public string Tillverkare { get; set; } = null!;

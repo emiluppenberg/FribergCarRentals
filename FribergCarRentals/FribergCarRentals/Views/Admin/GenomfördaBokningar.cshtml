@@ -1,0 +1,109 @@
+﻿@model IEnumerable<FribergCarRentals.Models.Bil>
+
+@{
+    ViewData["Title"] = "Kommande bokningar";
+}
+
+<div class="text-center">
+    <h1>Alla bokningar</h1>
+</div>
+<p class="text-danger text-center m-0" id="result"></p>
+<div class="d-flex flex-column">
+    @foreach (var bil in Model)
+    {
+            <p class="text-center fs-4 w-100" id="result-@bil.Id" style="display: block;"></p>
+            <div class="flex-row border border-dark w-100 justify-content-between mx-1 mt-1" style="display: flex;" id="container-@bil.Id">
+                <div class="w-25 border-start border-end border-dark overflow-hidden">
+                    <p class="fw-bold text-center">Bilder</p>
+                    <select onchange="bytBild(this, @bil.Id)">
+                    @foreach (var bild in bil.Bilder)
+                    {
+                                <option value="@bild">@bild</option>
+                    }
+                    </select>
+                    <div class="d-flex flex-row w-100 justify-content-center">
+                        <img src="@bil.Bilder[0]" id="bild-@bil.Id" class="my-auto" />
+                    </div>
+                </div>
+                <div class="d-flex flex-column w-75">
+                    <div class="d-flex flex-row flex-wrap w-100 justify-content-evenly">
+                        <div class="d-flex flex-column">
+                            <p class="fw-bold">Tillverkare</p>
+                            <p>@bil.Tillverkare</p>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <p class="fw-bold">Årsmodell</p>
+                            <p>@bil.Årsmodell</p>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <p class="fw-bold">Modell</p>
+                            <p>@bil.Modell</p>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <p class="fw-bold">Drivning</p>
+                            <p>@bil.Drivning</p>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <p class="fw-bold">Bränsle</p>
+                            <p>@bil.Bränsle</p>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <p class="fw-bold">Växellåda</p>
+                            <p>@bil.Växellåda</p>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column w-100 align-content-center border-top border-dark">
+                        <p class="fw-bold text-center">Beskrivning</p>
+                        <p class="text-center">@bil.Beskrivning</p>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex flex-column border-start border-end border-bottom border-dark mx-1 mb-1 w-100 text-center" id="datum-@bil.Id">
+                <p class="fw-bold">Uppbokade datum:</p>
+            @foreach (var bokning in bil.Bokningar)
+            {
+                        <div class="flex-row w-100 justify-content-center my-1" id="container-@bokning.Id" style="display: flex;">
+                            <p class="text-success mx-1">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
+                            <p class="fw-bold mx-1">Bokad av: </p>
+                            <p class="mx-1">@bokning.Kund.Email</p>
+                        </div>
+            }
+            </div>
+    }
+</div>
+
+@section Scripts {
+        <script>
+            window.onload = function () {
+                var images = document.querySelectorAll('img');
+
+                images.forEach(function (image){
+                    resizeImg(image);
+                });
+            }
+
+            function resizeImg(image){
+                var div = image.parentElement;
+                var divHeight = div.getBoundingClientRect().width / 10 * 7;
+                div.style.height = divHeight + "px";
+
+                if (!image.naturalWidth || !image.naturalHeight){
+                    image.onload = () => resizeImg(image);
+                    return;
+                }
+
+                var widthRatio = div.getBoundingClientRect().width / image.naturalWidth;
+                var heightRatio = div.getBoundingClientRect().height / image.naturalHeight;
+                var scaleFactor = Math.min(widthRatio, heightRatio);
+
+                image.style.width = (image.naturalWidth * scaleFactor) + 'px';
+                image.style.height = (image.naturalHeight * scaleFactor) + 'px';
+            }
+
+            function bytBild(select, bilId){
+                var image = document.getElementById("bild-" + bilId);
+                image.src = select.value;
+                resizeImg(image);
+            }
+        </script>
+}

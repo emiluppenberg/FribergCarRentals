@@ -67,6 +67,7 @@
                 </td>
                 <td>
                     <a class="btn btn-dark" asp-action="ÄndraKund" asp-route-kundId="@item.Id">Ändra</a>
+                    <a class="btn btn-dark" asp-action="KundBokningar" asp-route-kundId="@item.Id">Bokningar</a>
                     <button class="btn btn-dark" onclick="taBortKund(@item.Id)">Ta bort</button>
                 </td>
             </tr>

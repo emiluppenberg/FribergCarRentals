@@ -37,74 +37,50 @@ namespace FribergCarRentals.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> NyBokning(DateTime startDatum, DateTime slutDatum, int bilId)
+        public async Task<IActionResult> NyBokning([FromBody] Bokning model)
         {
             if (!HttpContext.User.HasClaim(ClaimTypes.Role, "kund"))
             {
-                string returnUrl = "/Bilar";
-                return RedirectToAction("Index", "Kund", new { returnUrl = returnUrl });
+                return StatusCode(401);
+            }
+
+            if (model == null || model.Startdatum > model.Slutdatum)
+            {
+                return StatusCode(400, "Ogiltiga datum");
             }
 
             var bokning = new Bokning()
             {
-                Startdatum = startDatum,
-                Slutdatum = slutDatum,
+                Startdatum = model.Startdatum,
+                Slutdatum = model.Slutdatum,
                 KundId = Convert.ToInt32(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)),
-                BilId = bilId
+                BilId = model.BilId
             };
 
-            var bokningar = await bokningRepository.FindAllAsync(x => x.BilId == bilId);
+            var bokningar = await bokningRepository.FindAllAsync(x => x.BilId == model.BilId);
 
-            if (bokningar != null && BokningarHelper.CheckDateAvailability(bokningar, bokning))
+            if (bokningar != null && 
+                BokningarHelper.ValidateNewBokning(bokning) &&
+                BokningarHelper.CheckDateAvailability(bokningar, bokning))
             {
                 try
                 {
                     await bokningRepository.AddAsync(bokning);
                     await bokningRepository.SaveChangesAsync();
 
-                    return RedirectToAction("BokningsBekräftelse", new { bokningId = bokning.Id, bilId = bilId });
+                    return Ok(new {
+                        startDatum = model.Startdatum.ToShortDateString(),
+                        slutDatum = model.Slutdatum.ToShortDateString(),
+                        result = "Bokningen har lagts till"
+                    });
                 }
                 catch (Exception ex)
                 {
-                    return RedirectToAction(
-                        "Error",
-                        "Home",
-                        new
-                        {
-                            error = ex.Message,
-                            returnUrl = "/Bilar"
-                        });
+                    return StatusCode(500, ex.Message);
                 }
             }
 
-            return RedirectToAction(
-                    "Error",
-                    "Home",
-                    new
-                    {
-                        error = "Bilen är redan uppbokad dessa datum",
-                        returnUrl = "/Bilar"
-                    });
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> BokningsBekräftelse(int bokningId, int bilId)
-        {
-            var bokning = await bokningRepository.FirstOrDefaultAsync(x => x.Id == bokningId);
-
-            if (bokning != null)
-            {
-                return View(bokning);
-            }
-
-            return RedirectToAction(
-                "Error",
-                "Home",
-                new
-                {
-                    error = "Bokningen kunde inte bekräftas",
-                    returnUrl = "/Bilar"
-                });
+            return StatusCode(400, "Ogiltiga datum");
         }
 
         [HttpDelete]
@@ -128,14 +104,7 @@ namespace FribergCarRentals.Controllers
                 }
             }
 
-            return RedirectToAction(
-                "Error",
-                "Home",
-                new
-                {
-                    error = "Inloggning krävs",
-                    returnUrl = "/Home"
-                });
+            return StatusCode(401, "Inloggning krävs");
         }
 
         [HttpGet]
@@ -178,6 +147,11 @@ namespace FribergCarRentals.Controllers
         [HttpPut]
         public async Task<IActionResult> ÄndraBokning([FromBody] Bokning model)
         {
+            if (model == null || model.Startdatum > model.Slutdatum)
+            {
+                return StatusCode(400, "Ogiltiga datum");
+            }
+
             if (HttpContext.User.HasClaim(ClaimTypes.Role, "kund") || HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
             {
                 var userId = Convert.ToInt32(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -191,9 +165,10 @@ namespace FribergCarRentals.Controllers
                         bokning.Startdatum = model.Startdatum;
                         bokning.Slutdatum = model.Slutdatum;
 
-                        var bokningar = await bokningRepository.FindAllAsync(x => x.BilId == bokning.BilId);
+                        var bokningar = await bokningRepository.FindAllAsync(x => x.BilId == bokning.BilId && x.Id != bokning.Id);
 
-                        if (BokningarHelper.CheckDateAvailability(bokningar, bokning))
+                        if (bokningar.Count() == 0 || 
+                            (BokningarHelper.ValidateNewBokning(bokning) && BokningarHelper.CheckDateAvailability(bokningar, bokning)))
                         {
                             bokningRepository.Update(bokning);
                             await bokningRepository.SaveChangesAsync();
@@ -207,7 +182,7 @@ namespace FribergCarRentals.Controllers
                         }
                         else
                         {
-                            return StatusCode(400, "Bilen är redan uppbokad dessa datum");
+                            return StatusCode(400, "Ogiltiga datum");
                         }
                     }
                     else
@@ -221,14 +196,42 @@ namespace FribergCarRentals.Controllers
                 }
             }
 
-            return RedirectToAction(
-                "Error",
-                "Home",
-                new
-                {
-                    error = "Inloggning krävs",
-                    returnUrl = "/Home"
-                });
+            return StatusCode(401, "Inloggning krävs");
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> GenomförBokning(int bokningId)
+        {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            {
+                return StatusCode(401, "Adminbehörighet krävs");
+            }
+
+            var bokning = await bokningRepository.GetByIdAsync(bokningId);
+
+            if (bokning.Startdatum > DateTime.Now)
+            {
+                return StatusCode(400, "Bokningen kan inte markeras som genomförd, datumen ligger framåt i tiden");
+            }
+
+            if (bokning.Slutdatum > DateTime.Now)
+            {
+                bokning.Slutdatum = DateTime.Now;
+            }
+
+            bokning.Genomförd = true;
+
+            try
+            {
+                bokningRepository.Update(bokning);
+                await bokningRepository.SaveChangesAsync();
+
+                return Ok("Bokningen har markerats som genomförd");
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
     }
 }
