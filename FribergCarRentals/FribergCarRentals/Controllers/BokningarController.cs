@@ -13,11 +13,13 @@ namespace FribergCarRentals.Controllers
     {
         private readonly IRepository<Bokning> bokningRepository;
         private readonly IRepository<Bil> bilRepository;
+        private readonly IRepository<Kund> kundRepository;
 
-        public BokningarController(IRepository<Bokning> bokningRepository, IRepository<Bil> bilRepository)
+        public BokningarController(IRepository<Bokning> bokningRepository, IRepository<Bil> bilRepository, IRepository<Kund> kundRepository)
         {
             this.bokningRepository = bokningRepository;
             this.bilRepository = bilRepository;
+            this.kundRepository = kundRepository;
         }
 
         [HttpGet]
@@ -31,9 +33,9 @@ namespace FribergCarRentals.Controllers
 
             var kundId = Convert.ToInt32(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            var bokningar = await bokningRepository.FindAllAsync(x => x.KundId == kundId);
+            var kund = await kundRepository.GetByIdAsync(kundId);
 
-            return View(bokningar);
+            return View(kund.Bokningar);
         }
 
         [HttpPost]
@@ -53,46 +55,57 @@ namespace FribergCarRentals.Controllers
             {
                 Startdatum = model.Startdatum,
                 Slutdatum = model.Slutdatum,
-                KundId = Convert.ToInt32(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)),
                 BilId = model.BilId
             };
 
-            var bokningar = await bokningRepository.FindAllAsync(x => x.BilId == model.BilId);
-
-            if (bokningar != null && 
-                BokningarHelper.ValidateNewBokning(bokning) &&
-                BokningarHelper.CheckDateAvailability(bokningar, bokning))
+            try
             {
-                try
-                {
-                    await bokningRepository.AddAsync(bokning);
-                    await bokningRepository.SaveChangesAsync();
+                var bokningar = await bokningRepository.FindAllAsync(x => x.BilId == model.BilId);
 
-                    return Ok(new {
+                if (BokningarHelper.ValidateNewBokning(bokning) &&
+                    BokningarHelper.CheckDateAvailability(bokningar!, bokning))
+                {
+                    var userId = Convert.ToInt32(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!.ToString());
+                    var kund = await kundRepository.GetByIdAsync(userId);
+                    kund.Bokningar.Add(bokning);
+
+                    kundRepository.Update(kund);
+                    await kundRepository.SaveChangesAsync();
+
+                    return Ok(new
+                    {
                         startDatum = model.Startdatum.ToShortDateString(),
                         slutDatum = model.Slutdatum.ToShortDateString(),
                         result = "Bokningen har lagts till"
                     });
                 }
-                catch (Exception ex)
-                {
-                    return StatusCode(500, ex.Message);
-                }
+
+                return StatusCode(400, "Ogiltiga datum");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
             }
 
-            return StatusCode(400, "Ogiltiga datum");
         }
 
         [HttpDelete]
         public async Task<IActionResult> TaBortBokning(int bokningId)
         {
-            if (HttpContext.User.HasClaim(ClaimTypes.Role, "kund") ||
-                HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            if (HttpContext.User.HasClaim(ClaimTypes.Role, "kund"))
             {
+                var userId = Convert.ToInt32(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
 
                 try
                 {
-                    var bokning = await bokningRepository.GetByIdAsync(bokningId);
+                    var kund = await kundRepository.GetByIdAsync(userId);
+                    var bokning = kund.Bokningar.Find(x => x.Id == bokningId);
+
+                    if (bokning == null)
+                    {
+                        return StatusCode(401, "Ditt KundId matchar inte bokningens KundId");
+                    }
+
                     bokningRepository.Remove(bokning);
                     await bokningRepository.SaveChangesAsync();
 
@@ -110,9 +123,13 @@ namespace FribergCarRentals.Controllers
         [HttpGet]
         public async Task<IActionResult> ÄndraBokning(int bokningId)
         {
-            if (HttpContext.User.HasClaim(ClaimTypes.Role, "kund") || HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            if (HttpContext.User.HasClaim(ClaimTypes.Role, "kund"))
             {
-                var bokning = await bokningRepository.FirstOrDefaultAsync(x => x.Id == bokningId);
+                var userId = Convert.ToInt32(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+                var kund = await kundRepository.GetByIdAsync(userId);
+
+                var bokning = kund.Bokningar.Find(x => x.Id == bokningId);
 
                 if (bokning == null)
                 {
@@ -121,17 +138,12 @@ namespace FribergCarRentals.Controllers
                         "Home",
                         new
                         {
-                            error = "Bokningen hittades inte i databasen",
+                            error = "Ditt KundId matchar inte bokningens KundId",
                             returnUrl = "/Bokningar"
                         });
                 }
 
-                var userId = Convert.ToInt32(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
-
-                if (userId == bokning.KundId || HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
-                {
-                    return View(bokning);
-                }
+                return View(bokning);
             }
 
             return RedirectToAction(
@@ -152,42 +164,44 @@ namespace FribergCarRentals.Controllers
                 return StatusCode(400, "Ogiltiga datum");
             }
 
-            if (HttpContext.User.HasClaim(ClaimTypes.Role, "kund") || HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            if (HttpContext.User.HasClaim(ClaimTypes.Role, "kund"))
             {
                 var userId = Convert.ToInt32(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
 
                 try
                 {
-                    var bokning = await bokningRepository.GetByIdAsync(model.Id);
+                    var kund = await kundRepository.GetByIdAsync(userId);
 
-                    if (userId == bokning.KundId || HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+                    var bokning = kund.Bokningar.Find(x => x.Id == model.Id);
+
+                    if (bokning == null)
                     {
-                        bokning.Startdatum = model.Startdatum;
-                        bokning.Slutdatum = model.Slutdatum;
+                        return StatusCode(401, "Ditt KundId matchar inte bokningens KundId");
+                    }
 
-                        var bokningar = await bokningRepository.FindAllAsync(x => x.BilId == bokning.BilId && x.Id != bokning.Id);
+                    bokning.Startdatum = model.Startdatum;
+                    bokning.Slutdatum = model.Slutdatum;
 
-                        if (bokningar.Count() == 0 || 
-                            (BokningarHelper.ValidateNewBokning(bokning) && BokningarHelper.CheckDateAvailability(bokningar, bokning)))
+                    var bokningar = await bokningRepository.FindAllAsync(x => x.BilId == bokning.BilId && x.Id != bokning.Id);
+
+                    if (bokningar!.Count() == 0 ||
+                        (BokningarHelper.ValidateNewBokning(bokning) && 
+                        BokningarHelper.CheckDateAvailability(bokningar!, bokning)))
+                    {
+                        bokningRepository.Update(bokning);
+
+                        await bokningRepository.SaveChangesAsync();
+
+                        return Ok(new
                         {
-                            bokningRepository.Update(bokning);
-                            await bokningRepository.SaveChangesAsync();
-
-                            return Ok(new
-                            {
-                                result = "Bokningen har uppdaterats",
-                                startDatum = bokning.Startdatum.ToShortDateString(),
-                                slutDatum = bokning.Slutdatum.ToShortDateString()
-                            });
-                        }
-                        else
-                        {
-                            return StatusCode(400, "Ogiltiga datum");
-                        }
+                            result = "Bokningen har uppdaterats",
+                            startDatum = bokning.Startdatum.ToShortDateString(),
+                            slutDatum = bokning.Slutdatum.ToShortDateString()
+                        });
                     }
                     else
                     {
-                        return StatusCode(401, "Ditt KundId matchar inte bokningens KundId");
+                        return StatusCode(400, "Ogiltiga datum");
                     }
                 }
                 catch (Exception ex)
@@ -197,41 +211,6 @@ namespace FribergCarRentals.Controllers
             }
 
             return StatusCode(401, "Inloggning krävs");
-        }
-
-        [HttpPut]
-        public async Task<IActionResult> GenomförBokning(int bokningId)
-        {
-            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
-            {
-                return StatusCode(401, "Adminbehörighet krävs");
-            }
-
-            var bokning = await bokningRepository.GetByIdAsync(bokningId);
-
-            if (bokning.Startdatum > DateTime.Now)
-            {
-                return StatusCode(400, "Bokningen kan inte markeras som genomförd, datumen ligger framåt i tiden");
-            }
-
-            if (bokning.Slutdatum > DateTime.Now)
-            {
-                bokning.Slutdatum = DateTime.Now;
-            }
-
-            bokning.Genomförd = true;
-
-            try
-            {
-                bokningRepository.Update(bokning);
-                await bokningRepository.SaveChangesAsync();
-
-                return Ok("Bokningen har markerats som genomförd");
-            }
-            catch(Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
         }
     }
 }

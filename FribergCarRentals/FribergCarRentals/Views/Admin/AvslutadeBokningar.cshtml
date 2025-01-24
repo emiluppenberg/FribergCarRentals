@@ -1,11 +1,11 @@
 ﻿@model IEnumerable<FribergCarRentals.Models.Bil>
 
 @{
-    ViewData["Title"] = "Kommande bokningar";
+    ViewData["Title"] = "Avslutade bokningar";
 }
 
 <div class="text-center">
-    <h1>Alla bokningar</h1>
+    <h1>Avslutade bokningar</h1>
 </div>
 <p class="text-danger text-center m-0" id="result"></p>
 <div class="d-flex flex-column">
@@ -64,8 +64,8 @@
             {
                         <div class="flex-row w-100 justify-content-center my-1" id="container-@bokning.Id" style="display: flex;">
                             <p class="text-success mx-1">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
-                            <p class="fw-bold mx-1">Bokad av: </p>
-                            <p class="mx-1">@bokning.Kund.Email</p>
+                            @* <p class="fw-bold mx-1">Bokad av: </p>
+                            <p class="mx-1">@bokning.Kund.Email</p> *@
                         </div>
             }
             </div>

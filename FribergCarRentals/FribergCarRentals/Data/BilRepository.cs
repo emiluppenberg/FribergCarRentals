@@ -22,7 +22,6 @@ namespace FribergCarRentals.Data
             return await context.Bilar
                 .Where(predicate)
                 .Include(x => x.Bokningar!)
-                .ThenInclude(x => x.Kund)
                 .ToListAsync();
         }
     }

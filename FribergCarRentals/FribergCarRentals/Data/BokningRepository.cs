@@ -33,5 +33,12 @@ namespace FribergCarRentals.Data
                 .Include(x => x.Bil)
                 .ToListAsync();
         }
+
+        public override async Task<Bokning> GetByIdAsync(int id)
+        {
+            return await context.Bokningar
+                .Include(x => x.Bil)
+                .FirstAsync(x => x.Id == id);
+        }
     }
 }

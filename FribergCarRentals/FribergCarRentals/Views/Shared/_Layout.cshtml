@@ -21,12 +21,9 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Bilar" asp-action="Index">Bilar</a>
                         </li>
-                        @if (Context.User.Claims == null)
+                        @if (Context.User.Claims.Count() == 0)
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Kund" asp-action="Index" asp-route-returnUrl="@Context.Request.Path">Logga in</a>
@@ -35,20 +32,46 @@
                                 <a class="nav-link text-dark" asp-controller="Kund" asp-action="Registrera" asp-route-returnUrl="@Context.Request.Path">Registrera</a>
                             </li>
                         }
-                        @if (Context.User.Claims.Any())
+                        @if (Context.User.HasClaim(ClaimTypes.Role, "kund"))
                         {
-                            if (Context.User.HasClaim(ClaimTypes.Role, "kund"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Bokningar" asp-action="Index">Mina bokningar</a>
-                                </li>
-                                <li class="nav-item">
-                                    <p class="navbar-text text-dark">Inloggad som kund: @Context.User.FindFirstValue(ClaimTypes.Name)</p>
-                                </li>
-                            }
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Bokningar" asp-action="Index">Mina bokningar</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Kund" asp-action="MinaUppgifter">Mina uppgifter</a>
+                            </li>
+                            <li class="nav-item">
+                                <p class="navbar-text text-dark">Inloggad som kund: @Context.User.FindFirstValue(ClaimTypes.Name)</p>
+                            </li>
                         }
-                </ul>
-            </div>
+                        @if (Context.User.HasClaim(ClaimTypes.Role, "admin"))
+                        {
+                            <li class="nav-item">
+                                <p class="navbar-text text-dark">Inloggad som admin: @Context.User.FindFirstValue(ClaimTypes.Name)</p>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><span class="navbar-toggler-icon"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item text-dark" asp-controller="Admin" asp-action="Bilar">Bilar</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-dark" asp-controller="Admin" asp-action="Kunder">Kunder</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-dark" asp-controller="Admin" asp-action="KommandeBokningar">Kommande bokningar</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-dark" asp-controller="Admin" asp-action="PågåendeBokningar">Pågående bokningar</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-dark" asp-controller="Admin" asp-action="AvslutadeBokningar">Avslutade bokningar</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+                </div>
             </div>
         </nav>
     </header>

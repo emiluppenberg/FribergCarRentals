@@ -116,7 +116,7 @@
         }
 
         async function jaTaBort(bilId){
-            const response = await fetch(`/Admin/TaBortBil?bilId=${bilId}`, { method: "DELETE" });
+            const response = await fetch(`/Admin/TaBortBil?bilId=${bilId}`, { method: "PUT" });
             const result = await response.text();
             if (response.ok){
                 document.getElementById("result-" + bilId).textContent = result;

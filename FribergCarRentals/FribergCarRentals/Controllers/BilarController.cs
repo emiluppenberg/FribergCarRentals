@@ -16,6 +16,12 @@ namespace FribergCarRentals.Controllers
         public async Task<IActionResult> Index()
         {
             var bilar = await bilRepository.GetAllAsync();
+
+            foreach (var bil in bilar!)
+            {
+                bil.Bokningar!.RemoveAll(x => x.Genomförd == true);
+            }
+
             return View(bilar);
         }
     }

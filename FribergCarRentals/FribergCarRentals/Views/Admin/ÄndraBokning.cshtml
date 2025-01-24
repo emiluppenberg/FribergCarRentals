@@ -1,0 +1,152 @@
+﻿@model FribergCarRentals.Models.Bokning
+
+@{
+    ViewData["Title"] = "Bilar";
+}
+
+<div class="text-center">
+    <h1>Ändra bokning</h1>
+</div>
+<div class="d-flex flex-column">
+    <div class="d-flex flex-row border border-dark w-100 justify-content-between m-1" id="container-@Model.Id">
+        <div class="w-25 border-start border-end border-dark overflow-hidden">
+            <p class="fw-bold text-center">Bilder</p>
+            <select onchange="bytBild(this, @Model.Id)">
+                @foreach (var bild in Model.Bil.Bilder)
+                {
+                    <option value="@bild">@bild</option>
+                }
+            </select>
+            <div class="d-flex flex-row w-100 justify-content-center">
+                <img src="@Model.Bil.Bilder[0]" id="bild-@Model.Id" class="my-auto" />
+            </div>
+        </div>
+        <div class="d-flex flex-column w-75">
+            <div class="d-flex flex-row flex-wrap w-100 justify-content-evenly">
+                <div class="d-flex flex-column">
+                    <p class="fw-bold">Tillverkare</p>
+                    <p>@Model.Bil.Tillverkare</p>
+                </div>
+                <div class="d-flex flex-column">
+                    <p class="fw-bold">Årsmodell</p>
+                    <p>@Model.Bil.Årsmodell</p>
+                </div>
+                <div class="d-flex flex-column">
+                    <p class="fw-bold">Modell</p>
+                    <p>@Model.Bil.Modell</p>
+                </div>
+                <div class="d-flex flex-column">
+                    <p class="fw-bold">Drivning</p>
+                    <p>@Model.Bil.Drivning</p>
+                </div>
+                <div class="d-flex flex-column">
+                    <p class="fw-bold">Bränsle</p>
+                    <p>@Model.Bil.Bränsle</p>
+                </div>
+                <div class="d-flex flex-column">
+                    <p class="fw-bold">Växellåda</p>
+                    <p>@Model.Bil.Växellåda</p>
+                </div>
+            </div>
+            <div class="d-flex flex-column w-100 align-content-center border-top border-dark">
+                <p class="fw-bold text-center">Beskrivning</p>
+                <p class="text-center">@Model.Bil.Beskrivning</p>
+            </div>
+        </div>
+    </div>
+    <p class="text-center fs-5">Kundens bokning:</p>
+    <p class="text-center text-success fs-4" id="datum">@Model.Startdatum.ToShortDateString() till @Model.Slutdatum.ToShortDateString()</p>
+    <div class="d-flex flex-row mx-1 justify-content-center">
+        <div class="d-flex flex-column mx-5">
+            <form>
+                <input type="hidden" id="bokningId" value="@Model.Id"
+                <label for="startdatum">Startdatum</label>
+                <input type="date" name="startDatum" class="form-control" id="startdatum" />
+                <label for="slutdatum">Slutdatum</label>
+                <input type="date" name="slutDatum" class="form-control" id="slutdatum" />
+                <input type="button" class="btn btn-dark mt-1" value="Spara ändringar" onclick="ändraBokning(@Model.Id)" />
+            </form>
+        </div>
+        <div class="d-flex flex-column">
+            <p class="fw-bold">Uppbokade datum:</p>
+            @foreach (var bokning in Model.Bil.Bokningar)
+            {
+                if (bokning.Id != Model.Id)
+                {
+                    <p class="text-danger">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
+                }
+            }
+        </div>
+    </div>
+    <p class="text-center m-0 fs-4" id="result"></p>
+</div>
+
+@section Scripts {
+    <script>
+        window.onload = function () {
+            var images = document.querySelectorAll('img');
+
+            images.forEach(function (image){
+                resizeImg(image);
+            });
+        }
+
+        function resizeImg(image){
+            var div = image.parentElement;
+            var divHeight = div.getBoundingClientRect().width / 10 * 7;
+            div.style.height = divHeight + "px";
+
+            if (!image.naturalWidth || !image.naturalHeight){
+                image.onload = () => resizeImg(image);
+                return;
+            }
+
+            var widthRatio = div.getBoundingClientRect().width / image.naturalWidth;
+            var heightRatio = div.getBoundingClientRect().height / image.naturalHeight;
+            var scaleFactor = Math.min(widthRatio, heightRatio);
+
+            image.style.width = (image.naturalWidth * scaleFactor) + 'px';
+            image.style.height = (image.naturalHeight * scaleFactor) + 'px';
+        }
+
+        function bytBild(select, bokningId){
+            var image = document.getElementById("bild-" + bokningId);
+            image.src = select.value;
+            resizeImg(image);
+        }
+
+        async function ändraBokning(bokningId){
+            bokning = {
+                Startdatum: document.getElementById("startdatum").value,
+                Slutdatum: document.getElementById("slutdatum").value,
+                Id: document.getElementById("bokningId").value
+            };
+
+            console.log(bokning);
+
+            const response = await fetch(`/Admin/ÄndraBokning`, {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(bokning)
+            });
+
+            if (response.ok){
+                const responseData = await response.json();
+                document.getElementById("datum").textContent = responseData.startDatum + " till " + responseData.slutDatum;
+                document.getElementById("result").textContent = responseData.result;
+                document.getElementById("result").classList = "text-center fs-4 w-100 text-success"
+            }
+            if (response.status === 400){
+                const responseText = await response.text();
+                document.getElementById("result").textContent = responseText;
+                document.getElementById("result").classList = "text-center fs-4 w-100 text-danger"
+            }
+            if (response.status === 401 || response.status === 500) {
+                const responseText = await response.text();
+                const error = encodeURIComponent(responseText);
+                const returnUrl = encodeURIComponent(window.location.pathname);
+                window.location.href = `/Home/Error?error=${error}&returnUrl=${returnUrl}`;
+            }
+        }
+    </script>
+}

@@ -12,8 +12,8 @@ namespace FribergCarRentals.Models
         [Required(ErrorMessage = "Slutdatum saknas")]
         public DateTime Slutdatum { get; set; }
 
-        public int KundId { get; set; }
-        public Kund Kund { get; set; } = null!;
+        public int? KundId { get; set; }
+        public virtual Kund Kund { get; set; } = null!;
 
         public int BilId { get; set; }
         public Bil Bil { get; set; } = null!;
