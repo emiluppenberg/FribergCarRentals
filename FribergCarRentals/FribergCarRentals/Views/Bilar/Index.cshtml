@@ -4,15 +4,13 @@
     ViewData["Title"] = "Bilar";
 }
 
-<div class="text-center">
+<div class="text-center mt-5">
     <h1>Våra bilar</h1>
 </div>
-<p class="text-danger text-center m-0" id="result"></p>
 <div class="d-flex flex-column">
     @foreach (var bil in Model)
     {
-        <p class="text-center fs-4 w-100" id="result-@bil.Id" style="display: block;"></p>
-        <div class="flex-row border border-dark w-100 justify-content-between m-1" style="display: flex;" id="container-@bil.Id">
+        <div class="flex-row border border-dark w-100 justify-content-between mt-3 bg-white" style="display: flex;" id="container-@bil.Id">
             <div class="w-25 border-start border-end border-dark overflow-hidden">
                 <p class="fw-bold text-center">Bilder</p>
                 <select onchange="bytBild(this, @bil.Id)">
@@ -56,27 +54,30 @@
                     <p class="fw-bold text-center">Beskrivning</p>
                     <p class="text-center">@bil.Beskrivning</p>
                 </div>
-                <div class="flex-row align-content-end" style="height: 100%;" id="ändratabort-@bil.Id">
-                    <button type="button" class="btn btn-dark m-1" style="height: 2em;" data-bs-toggle="collapse" data-bs-target="#boka-@bil.Id">Boka</button>
+                <div class="flex-row w-100 text-center align-content-end" style="height: 100%;">
+                    <button type="button" class="btn btn-dark m-1" style="height: 2em;" data-bs-toggle="collapse" data-bs-target="#boka-@bil.Id">Se datum/Boka</button>
                 </div>
             </div>
         </div>
-        <div id="boka-@bil.Id" class="collapse mx-1 w-100">
-            <div class="card card-body d-flex flex-row justify-content-center">
-                <div class="d-flex flex-column mx-5">
-                    <input type="hidden" id="bilId-@bil.Id" value="@bil.Id" />
-                    <label for="startdatum">Startdatum</label>
-                    <input type="date" id="startdatum-@bil.Id" class="form-control" />
-                    <label for="slutdatum">Slutdatum</label>
-                    <input type="date" id="slutdatum-@bil.Id" class="form-control" />
-                    <button class="btn btn-dark mt-1" onclick="nyBokning(@bil.Id)">Boka</button>
-                </div>
-                <div class="d-flex flex-column" id="datum-@bil.Id">
-                    <p class="fw-bold">Uppbokade datum:</p>
-                    @foreach (var bokning in bil.Bokningar)
-                    {
-                        <p class="text-danger">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
-                    }
+        <div id="boka-@bil.Id" class="collapse border-start border-end border-bottom border-dark w-100">
+            <div class="card card-body d-flex flex-column">
+                <p id="result-@bil.Id"></p>
+                <div class="d-flex flex-row justify-content-center">
+                    <div class="d-flex flex-column mx-5">
+                        <input type="hidden" id="bilId-@bil.Id" value="@bil.Id" />
+                        <label for="startdatum">Startdatum</label>
+                        <input type="date" id="startdatum-@bil.Id" class="form-control" />
+                        <label for="slutdatum">Slutdatum</label>
+                        <input type="date" id="slutdatum-@bil.Id" class="form-control" />
+                        <button class="btn btn-dark mt-1" onclick="nyBokning(@bil.Id)">Boka</button>
+                    </div>
+                    <div class="d-flex flex-column" id="datum-@bil.Id">
+                        <p class="fw-bold">Otillgängliga datum:</p>
+                        @foreach (var bokning in bil.Bokningar)
+                        {
+                            <p class="text-danger">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
@@ -132,10 +133,10 @@
 
             if (response.ok){
                 const data = await response.json();
-                document.getElementById("datum-" + bilId).innerHTML += 
+                document.getElementById("datum-" + bilId).innerHTML +=
                 `<p class='text-danger'>${data.startDatum} till ${data.slutDatum}</p>`;
                 document.getElementById("result-" + bilId).textContent = data.result;
-                document.getElementById("result-" + bilId).classList = "text-center fs-4 w-100 text-success"
+                document.getElementById("result-" + bilId).classList = "text-center fs-5 m-0 w-100 text-success"
             }
             else if (response.status === 500){
                 const result = await response.text();
@@ -151,7 +152,7 @@
             else if (response.status === 400) {
                 const result = await response.text();
                 document.getElementById("result-" + bilId).textContent = result;
-                document.getElementById("result-" + bilId).classList = "text-center fs-4 w-100 text-danger"
+                document.getElementById("result-" + bilId).classList = "text-center fs-5 m-0 w-100 text-danger"
             }
         }
     </script>

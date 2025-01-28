@@ -1,17 +1,20 @@
 ﻿@model FribergCarRentals.Models.Bokning
 
 @{
-    ViewData["Title"] = "Bilar";
+    ViewData["Title"] = "Ändra bokning";
 }
 
-<div class="text-center">
+<div class="text-center mt-5">
     <h1>Ändra bokning</h1>
 </div>
 <div class="d-flex flex-column">
-    <div class="d-flex flex-row border border-dark w-100 justify-content-between m-1" id="container-@Model.Id">
+    <div class="d-flex flex-row border border-dark w-100 justify-content-between bg-white mt-1" id="container-@Model.Id">
         <div class="w-25 border-start border-end border-dark overflow-hidden">
             <p class="fw-bold text-center">Bilder</p>
             <select onchange="bytBild(this, @Model.Id)">
+                @{
+                    Console.WriteLine(Model.Bil.Bilder[0]);
+                }
                 @foreach (var bild in Model.Bil.Bilder)
                 {
                     <option value="@bild">@bild</option>
@@ -54,31 +57,33 @@
             </div>
         </div>
     </div>
-    <p class="text-center fs-5">Din bokning:</p>
-    <p class="text-center text-success fs-4" id="datum">@Model.Startdatum.ToShortDateString() till @Model.Slutdatum.ToShortDateString()</p>
-    <div class="d-flex flex-row mx-1 justify-content-center">
-        <div class="d-flex flex-column mx-5">
-            <form>
-                <input type="hidden" id="bokningId" value="@Model.Id"
-                <label for="startdatum">Startdatum</label>
-                <input type="date" name="startDatum" class="form-control" id="startdatum" />
-                <label for="slutdatum">Slutdatum</label>
-                <input type="date" name="slutDatum" class="form-control" id="slutdatum" />
-                <input type="button" class="btn btn-dark mt-1" value="Spara ändringar" onclick="ändraBokning(@Model.Id)" />
-            </form>
-        </div>
-        <div class="d-flex flex-column">
-            <p class="fw-bold">Uppbokade datum:</p>
-            @foreach (var bokning in Model.Bil.Bokningar)
-            {
-                if (bokning.Id != Model.Id)
+    <div class="d-flex flex-column bg-white border-start border-end border-bottom border-dark">
+        <p class="text-center fs-5">Din bokning:</p>
+        <p class="text-center text-success fs-4" id="datum">@Model.Startdatum.ToShortDateString() till @Model.Slutdatum.ToShortDateString()</p>
+        <div class="d-flex flex-row justify-content-center">
+            <div class="d-flex flex-column mx-5">
+                <div>
+                    <input type="hidden" id="bokningId" value="@Model.Id" />
+                    <label for="startdatum">Startdatum</label>
+                    <input type="date" name="startDatum" class="form-control" id="startdatum" />
+                    <label for="slutdatum">Slutdatum</label>
+                    <input type="date" name="slutDatum" class="form-control" id="slutdatum" />
+                    <input type="button" class="btn btn-dark my-1 w-100" value="Spara ändringar" onclick="ändraBokning(@Model.Id)" />
+                </div>
+            </div>
+            <div class="d-flex flex-column">
+                <p class="fw-bold">Uppbokade datum:</p>
+                @foreach (var bokning in Model.Bil.Bokningar!)
                 {
-                    <p class="text-danger">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
+                    if (bokning.Id != Model.Id && !bokning.Genomförd)
+                    {
+                        <p class="text-danger">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
+                    }
                 }
-            }
+            </div>
         </div>
+        <p class="text-center m-0 fs-5" id="result"></p>
     </div>
-    <p class="text-center m-0 fs-4" id="result"></p>
 </div>
 
 @section Scripts {
@@ -132,12 +137,12 @@
                 const responseData = await response.json();
                 document.getElementById("datum").textContent = responseData.startDatum + " till " + responseData.slutDatum;
                 document.getElementById("result").textContent = responseData.result;
-                document.getElementById("result").classList = "text-center fs-4 w-100 text-success"
+                document.getElementById("result").classList = "text-center m-2 fs-5 w-100 text-success"
             }
             if (response.status === 400){
                 const responseText = await response.text();
                 document.getElementById("result").textContent = responseText;
-                document.getElementById("result").classList = "text-center fs-4 w-100 text-danger"
+                document.getElementById("result").classList = "text-center m-2 fs-5 w-100 text-danger"
             }
             if (response.status === 401 || response.status === 500) {
                 const responseText = await response.text();

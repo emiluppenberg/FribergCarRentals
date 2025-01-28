@@ -7,20 +7,15 @@ namespace FribergCarRentals.Controllers
 {
     public class BilarController : Controller
     {
-        private readonly IRepository<Bil> bilRepository;
+        private readonly IBilRepository bilRepository;
 
-        public BilarController(IRepository<Bil> bilRepository)
+        public BilarController(IBilRepository bilRepository)
         {
             this.bilRepository = bilRepository;
         }
         public async Task<IActionResult> Index()
         {
-            var bilar = await bilRepository.GetAllAsync();
-
-            foreach (var bil in bilar!)
-            {
-                bil.Bokningar!.RemoveAll(x => x.Genomförd == true);
-            }
+            var bilar = await bilRepository.GetAllWithBokningarAsync();
 
             return View(bilar);
         }

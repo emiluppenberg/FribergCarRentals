@@ -1,63 +1,47 @@
 ﻿@model FribergCarRentals.Models.Kund
 
 @{
-    ViewData["Title"] = "MinaUppgifter";
+    ViewData["Title"] = "Mina uppgifter";
 }
 
-<h1>MinaUppgifter</h1>
+<h1 class="text-center mt-5">Mina uppgifter</h1>
 
-<div>
-    <h4>Kund</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Email)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Email)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Lösenord)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Lösenord)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Förnamn)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Förnamn)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Efternamn)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Efternamn)
-        </dd>
-        <dt class = "col-sm-2">
-            Telefon nummer
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TelefonNummer)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Adress)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Adress)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Postkod)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Postkod)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Ort)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Ort)
-        </dd>
-    </dl>
-    <p>Kontakta admin för att ändra dina uppgifter</p>
+<div class="w-100 d-flex justify-content-center">
+    <div class="col-md-4">
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" disabled />
+            </div>
+            <div class="form-group">
+                <label asp-for="Lösenord" class="control-label"></label>
+                <input asp-for="Lösenord" class="form-control" disabled />
+            </div>
+            <div class="form-group">
+                <label asp-for="Förnamn" class="control-label"></label>
+                <input asp-for="Förnamn" class="form-control" disabled />
+            </div>
+            <div class="form-group">
+                <label asp-for="Efternamn" class="control-label"></label>
+                <input asp-for="Efternamn" class="form-control" disabled />
+            </div>
+            <div class="form-group">
+                <label asp-for="TelefonNummer" class="control-label"></label>
+                <input asp-for="TelefonNummer" class="form-control" disabled />
+            </div>
+            <div class="form-group">
+                <label asp-for="Adress" class="control-label"></label>
+                <input asp-for="Adress" class="form-control" disabled />
+            </div>
+            <div class="form-group">
+                <label asp-for="Postkod" class="control-label"></label>
+                <input asp-for="Postkod" class="form-control" disabled />
+            </div>
+            <div class="form-group">
+                <label asp-for="Ort" class="control-label"></label>
+                <input asp-for="Ort" class="form-control" disabled />
+            </div>
+    </div>
+</div>
+<div class="text-center">
+    <p class="text-center">Kontakta admin för att ändra dina uppgifter</p>
 </div>

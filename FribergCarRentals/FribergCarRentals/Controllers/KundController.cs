@@ -17,11 +17,14 @@ namespace FribergCarRentals.Controllers
             this.kundRepository = kundRepository;
         }
 
+        [HttpGet]
         public IActionResult Index(string? returnUrl)
         {
             ViewBag.ReturnUrl = returnUrl;
             return View();
         }
+
+        [HttpGet]
         public IActionResult Registrera(string? returnUrl)
         {
             ViewBag.ReturnUrl = returnUrl;
@@ -52,6 +55,24 @@ namespace FribergCarRentals.Controllers
                     return LocalRedirect(returnUrl);
                 }
             }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> LoggaUt(string? returnUrl)
+        {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "kund"))
+            {
+                if (returnUrl != null)
+                {
+                    return LocalRedirect(returnUrl);
+                }
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            await HttpContext.SignOutAsync("MyCookie");
 
             return RedirectToAction("Index", "Home");
         }

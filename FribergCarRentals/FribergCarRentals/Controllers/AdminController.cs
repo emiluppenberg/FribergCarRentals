@@ -13,11 +13,11 @@ namespace FribergCarRentals.Controllers
     public class AdminController : Controller
     {
         private readonly IRepository<Admin> adminRepository;
-        private readonly IRepository<Bil> bilRepository;
+        private readonly IBilRepository bilRepository;
         private readonly IRepository<Kund> kundRepository;
-        private readonly IRepository<Bokning> bokningRepository;
+        private readonly IBokningRepository bokningRepository;
 
-        public AdminController(IRepository<Admin> adminRepository, IRepository<Bil> bilRepository, IRepository<Kund> kundRepository, IRepository<Bokning> bokningRepository)
+        public AdminController(IRepository<Admin> adminRepository, IBilRepository bilRepository, IRepository<Kund> kundRepository, IBokningRepository bokningRepository)
         {
             this.adminRepository = adminRepository;
             this.bilRepository = bilRepository;
@@ -56,6 +56,24 @@ namespace FribergCarRentals.Controllers
                     return LocalRedirect(returnUrl);
                 }
             }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> LoggaUt(string? returnUrl)
+        {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            {
+                if (returnUrl != null)
+                {
+                    return LocalRedirect(returnUrl);
+                }
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            await HttpContext.SignOutAsync("MyCookie");
 
             return RedirectToAction("Index", "Home");
         }
@@ -150,6 +168,7 @@ namespace FribergCarRentals.Controllers
             {
                 var bil = await bilRepository.GetByIdAsync(bilId);
                 bil.ÄrAktiv = false;
+                bilRepository.Update(bil);
                 await bilRepository.SaveChangesAsync();
                 return Ok("Bilen har tagits bort");
             }
@@ -161,7 +180,7 @@ namespace FribergCarRentals.Controllers
 
         [Route("/Admin/ÄndraBil/{bilId}")]
         [HttpGet]
-        public IActionResult ÄndraBil(int bilId)
+        public async Task<IActionResult> ÄndraBil(int bilId)
         {
             if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
             {
@@ -169,7 +188,7 @@ namespace FribergCarRentals.Controllers
                 return RedirectToAction("Index", new { returnUrl = returnUrl });
             }
 
-            var bil = bilRepository.GetById(bilId);
+            var bil = await bilRepository.GetByIdAsync(bilId);
 
             return View(bil);
         }
@@ -206,7 +225,6 @@ namespace FribergCarRentals.Controllers
 
             try
             {
-                model.Id = 37;
                 var bil = await bilRepository.GetByIdAsync(model.Id);
 
                 bil.Tillverkare = model.Tillverkare;
@@ -318,7 +336,7 @@ namespace FribergCarRentals.Controllers
                 {
                     if (!bokning.Genomförd)
                     {
-                        if (bokning.Startdatum < DateTime.Now)
+                        if (bokning.Startdatum <= DateTime.Now)
                         {
                             return StatusCode(400, "Kunden har en pågående bokning");
                         }
@@ -344,28 +362,29 @@ namespace FribergCarRentals.Controllers
         [HttpGet]
         public async Task<IActionResult> ÄndraBokning(int bokningId)
         {
-            if (HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
             {
-
-                var bokning = await bokningRepository.GetByIdAsync(bokningId);
-
-                return View(bokning);
+                return RedirectToAction(
+                    "Error",
+                    "Home",
+                    new
+                    {
+                        error = "Adminbehörighet krävs",
+                        returnUrl = "/Home"
+                    });
             }
 
-            return RedirectToAction(
-                "Error",
-                "Home",
-                new
-                {
-                    error = "Adminbehörighet krävs",
-                    returnUrl = "/Home"
-                });
+            var bokning = await bokningRepository.GetByIdIncludeAsync(bokningId);
+
+            bokning.Bil.Bilder = bokning.Bil.Bilder.ToList();
+
+            return View(bokning);
         }
 
         [HttpPut]
         public async Task<IActionResult> ÄndraBokning([FromBody] Bokning model)
         {
-            if (model == null || model.Startdatum > model.Slutdatum)
+            if (model == null || BokningarHelper.ValidateBokning(model))
             {
                 return StatusCode(400, "Ogiltiga datum");
             }
@@ -376,14 +395,15 @@ namespace FribergCarRentals.Controllers
                 {
                     var bokning = await bokningRepository.GetByIdAsync(model.Id);
 
+                    if (bokning.Startdatum <= DateTime.Today && bokning.Startdatum != model.Startdatum)
+                    {
+                        return StatusCode(400, "Startdatum går inte ändras för en pågående bokning");
+                    }
+
                     bokning.Startdatum = model.Startdatum;
                     bokning.Slutdatum = model.Slutdatum;
 
-                    var bokningar = await bokningRepository.FindAllAsync(x => x.BilId == bokning.BilId && x.Id != bokning.Id);
-
-                    if (bokningar!.Count() == 0 ||
-                        (BokningarHelper.ValidateNewBokning(bokning) &&
-                        BokningarHelper.CheckDateAvailability(bokningar!, bokning)))
+                    if (!await bokningRepository.AnyBetweenDatesAsync(bokning))
                     {
                         bokningRepository.Update(bokning);
 
@@ -462,27 +482,42 @@ namespace FribergCarRentals.Controllers
                 return StatusCode(401, "Adminbehörighet krävs");
             }
 
+            if (model == null)
+            {
+                return StatusCode(400, "Ange slutdatum");
+            }
+
             var bokning = await bokningRepository.GetByIdAsync(model.Id);
 
-            if (bokning.Startdatum > DateTime.Now)
+            if (bokning.Startdatum > DateTime.Today)
             {
                 return StatusCode(400, "Bokningen kan inte avslutas, startdatumet ligger framåt i tiden");
+            }
+
+            if (model.Slutdatum > DateTime.Today)
+            {
+                return StatusCode(400, "Bokningen kan inte avslutas, slutdatumet ligger framåt i tiden");
             }
 
             bokning.Slutdatum = model.Slutdatum;
             bokning.Genomförd = true;
 
-            try
+            if (!await bokningRepository.AnyBetweenDatesAsync(bokning))
             {
-                bokningRepository.Update(bokning);
-                await bokningRepository.SaveChangesAsync();
+                try
+                {
+                    bokningRepository.Update(bokning);
+                    await bokningRepository.SaveChangesAsync();
 
-                return Ok("Bokningen har avslutats");
+                    return Ok("Bokningen har avslutats");
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, ex.Message);
+                }
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+
+            return StatusCode(400, "Bokningen kan inte avslutas, slutdatumet krockar med en annan bokning");
         }
 
         [HttpGet]
@@ -499,23 +534,9 @@ namespace FribergCarRentals.Controllers
                     });
             }
 
-            var bokadeBilar = await bilRepository.FindAllAsync(x => x.Bokningar!.Count > 0);
+            var bilar = await bilRepository.GetAllWithKommandeBokningarAsync();
 
-            var kommandeBokningar = bokadeBilar!.ToList();
-
-            for (int i = 0; i < kommandeBokningar.Count; i++)
-            {
-                kommandeBokningar[i].Bokningar!.RemoveAll(x => x.Genomförd == true || x.Startdatum < DateTime.Now);
-                kommandeBokningar[i].Bokningar!.RemoveAll(x => x.Startdatum < DateTime.Today);
-
-                if (kommandeBokningar[i].Bokningar!.Count() == 0)
-                {
-                    kommandeBokningar.Remove(kommandeBokningar[i]);
-                    i--;
-                }
-            }
-
-            return View(kommandeBokningar);
+            return View(bilar);
         }
 
         [HttpGet]
@@ -532,23 +553,9 @@ namespace FribergCarRentals.Controllers
                     });
             }
 
-            var bokadeBilar = await bilRepository.FindAllAsync(x => x.Bokningar!.Count > 0);
+            var bilar = await bilRepository.GetAllWithPågåendeBokningarAsync();
 
-            var pågåendeBokningar = bokadeBilar!.ToList();
-
-            for (int i = 0; i < pågåendeBokningar.Count; i++)
-            {
-                pågåendeBokningar[i].Bokningar!.RemoveAll(x => x.Genomförd == true);
-                pågåendeBokningar[i].Bokningar!.RemoveAll(x => x.Startdatum > DateTime.Today);
-
-                if (pågåendeBokningar[i].Bokningar!.Count() == 0)
-                {
-                    pågåendeBokningar.Remove(pågåendeBokningar[i]);
-                    i--;
-                }
-            }
-
-            return View(pågåendeBokningar);
+            return View(bilar);
         }
 
         [HttpGet]
@@ -565,22 +572,9 @@ namespace FribergCarRentals.Controllers
                     });
             }
 
-            var bokadeBilar = await bilRepository.FindAllAsync(x => x.Bokningar!.Count > 0);
+            var bilar = await bilRepository.GetAllWithAvslutadeBokningarAsync();
 
-            var genomfördaBokningar = bokadeBilar!.ToList();
-
-            for (int i = 0; i < genomfördaBokningar.Count; i++)
-            {
-                genomfördaBokningar[i].Bokningar!.RemoveAll(x => x.Genomförd == false);
-
-                if (genomfördaBokningar[i].Bokningar!.Count() == 0)
-                {
-                    genomfördaBokningar.Remove(genomfördaBokningar[i]);
-                    i--;
-                }
-            }
-
-            return View(genomfördaBokningar);
+            return View(bilar);
         }
     }
 }

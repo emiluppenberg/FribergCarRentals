@@ -4,41 +4,38 @@ using System.Linq.Expressions;
 
 namespace FribergCarRentals.Data
 {
-    public class BokningRepository : GenericRepository<Bokning>
+    public class BokningRepository : GenericRepository<Bokning>, IBokningRepository
     {
         public BokningRepository(AppDbContext context) : base(context)
         {
         }
 
-        public override async Task<Bokning?> FirstOrDefaultAsync(Expression<Func<Bokning, bool>> predicate)
+        public async Task<IEnumerable<Bokning>?> GetAllKundBokningarAsync(int kundId)
         {
             return await context.Bokningar
-                .Include(x => x.Bil)
-                .ThenInclude(x => x.Bokningar)
-                .FirstOrDefaultAsync(predicate);
-        }
-
-        public override async Task<IEnumerable<Bokning>?> FindAllAsync(Expression<Func<Bokning, bool>> predicate)
-        {
-            return await context.Set<Bokning>()
-                .Where(predicate)
-                .Include(x => x.Bil)
-                .ThenInclude(x => x.Bokningar)
-                .ToListAsync();
-        }
-
-        public override async Task<IEnumerable<Bokning>?> GetAllAsync()
-        {
-            return await context.Bokningar
+                .Where(x => x.KundId == kundId)
                 .Include(x => x.Bil)
                 .ToListAsync();
         }
 
-        public override async Task<Bokning> GetByIdAsync(int id)
+        public async Task<bool> AnyBetweenDatesAsync(Bokning bokning)
+        {
+            return await context.Bokningar
+                .AnyAsync(
+                x => x.BilId == bokning.BilId &&
+                x.Startdatum <= bokning.Slutdatum &&
+                x.Slutdatum >= bokning.Startdatum &&
+                x.Genomförd != true &&
+                x.Id != bokning.Id);
+        }
+
+        public async Task<Bokning> GetByIdIncludeAsync(int bokningId)
         {
             return await context.Bokningar
                 .Include(x => x.Bil)
-                .FirstAsync(x => x.Id == id);
+                    .ThenInclude(x => x.Bokningar)
+                .Include(x => x.Kund)
+                .FirstAsync(x => x.Id == bokningId);
         }
     }
 }

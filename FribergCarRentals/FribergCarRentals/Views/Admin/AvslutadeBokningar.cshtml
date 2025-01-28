@@ -4,15 +4,13 @@
     ViewData["Title"] = "Avslutade bokningar";
 }
 
-<div class="text-center">
+<div class="text-center mt-5">
     <h1>Avslutade bokningar</h1>
 </div>
-<p class="text-danger text-center m-0" id="result"></p>
 <div class="d-flex flex-column">
     @foreach (var bil in Model)
     {
-            <p class="text-center fs-4 w-100" id="result-@bil.Id" style="display: block;"></p>
-            <div class="flex-row border border-dark w-100 justify-content-between mx-1 mt-1" style="display: flex;" id="container-@bil.Id">
+            <div class="flex-row border border-dark w-100 justify-content-between bg-white mt-3" style="display: flex;" id="container-@bil.Id">
                 <div class="w-25 border-start border-end border-dark overflow-hidden">
                     <p class="fw-bold text-center">Bilder</p>
                     <select onchange="bytBild(this, @bil.Id)">
@@ -58,15 +56,25 @@
                     </div>
                 </div>
             </div>
-            <div class="d-flex flex-column border-start border-end border-bottom border-dark mx-1 mb-1 w-100 text-center" id="datum-@bil.Id">
-                <p class="fw-bold">Uppbokade datum:</p>
+            <div class="d-flex flex-column border-start border-end border-bottom border-dark bg-white w-100 text-center" id="datum-@bil.Id">
             @foreach (var bokning in bil.Bokningar)
             {
+                if (bokning.Kund != null)
+                {
                         <div class="flex-row w-100 justify-content-center my-1" id="container-@bokning.Id" style="display: flex;">
                             <p class="text-success mx-1">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
-                            @* <p class="fw-bold mx-1">Bokad av: </p>
-                            <p class="mx-1">@bokning.Kund.Email</p> *@
+                            <p class="fw-bold mx-1">Bokad av: </p>
+                            <p class="mx-1">@bokning.Kund.Email</p>
                         </div>
+                }
+                if (bokning.Kund == null)
+                {
+                    <div class="flex-row w-100 justify-content-center my-1" id="container-@bokning.Id" style="display: flex;">
+                        <p class="text-success mx-1">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
+                        <p class="fw-bold mx-1">Bokad av: </p>
+                        <p class="mx-1">Anonym</p>
+                    </div>
+                }
             }
             </div>
     }

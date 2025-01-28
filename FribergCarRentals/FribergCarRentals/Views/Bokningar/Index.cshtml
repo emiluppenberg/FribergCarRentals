@@ -4,13 +4,13 @@
     ViewData["Title"] = "Mina bokningar";
 }
 
-<h1 class="text-center">Mina bokningar</h1>
+<h1 class="text-center mt-5">Mina bokningar</h1>
 
 <div class="d-flex flex-column">
     @foreach (var bokning in Model)
     {
-        <p class="text-center fs-4 w-100" id="result-@bokning.Id"></p>
-        <div class="flex-row border border-dark w-100 justify-content-between m-1" style="display: flex;" id="container-@bokning.Id">
+        <p class="text-center m-2 fs-4 w-100" id="result-@bokning.Id"></p>
+        <div class="flex-row border border-dark w-100 justify-content-between bg-white mt-1" style="display: flex;" id="container-@bokning.Id">
             <div class="w-25 border-start border-end border-dark overflow-hidden">
                 <p class="fw-bold text-center">Bilder</p>
                 <select onchange="bytBild(this, @bokning.Id)">
@@ -55,21 +55,29 @@
                     <p class="text-center">@bokning.Bil.Beskrivning</p>
                 </div>
                 <div class="d-flex flex-column justify-content-end w-100" style="height: 100%;">
-                    @if (bokning.Genomförd == false)
+                    @if (bokning.Startdatum < DateTime.Today && !bokning.Genomförd)
+                    {
+                        <p class="text-center text-warning fs-4">Pågående bokning</p>
+                        <p class="text-center text-warning fs-4">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
+                        <div class="flex-row justify-content-center" id="ändratabort-@bokning.Id" style="display: flex;">
+                            <a class="btn btn-dark m-1" asp-action="ÄndraBokning" asp-controller="Bokningar" asp-route-bokningId="@bokning.Id">Ändra</a>
+                        </div>
+                    }
+                    @if (bokning.Startdatum > DateTime.Today)
                     {
                         <p class="text-center fs-4">Kommande bokning</p>
                         <p class="text-center fs-4">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
                         <div class="flex-row justify-content-center" id="ändratabort-@bokning.Id" style="display: flex;">
-                            <a class="btn btn-dark m-1" asp-action="ÄndraBokning" asp-controller="Bokningar" asp-route-bokningId="@bokning.Id">Ändra</a>
+                            <a class="btn btn-dark m-1" asp-action="ÄndraBokning" asp-route-bokningId="@bokning.Id">Ändra</a>
                             <button class="btn btn-dark m-1" onclick="frågaTaBort(@bokning.Id)">Ta bort</button>
                         </div>
                         <div class="flex-row justify-content-center" style="display: none;" id="janej-@bokning.Id">
                             <p class="text-danger">Ta bort denna bokning?</p>
-                            <button class="btn btn-secondary m-1" style="height: 2em;" onclick="jaTaBort(@bokning.Id)">Ja</button>
-                            <button class="btn btn-secondary m-1" style="height: 2em;" onclick="nejTaBort(@bokning.Id)">Nej</button>
+                            <button class="btn btn-dark m-1" style="height: 2em;" onclick="jaTaBort(@bokning.Id)">Ja</button>
+                            <button class="btn btn-dark m-1" style="height: 2em;" onclick="nejTaBort(@bokning.Id)">Nej</button>
                         </div>
                     }
-                    else
+                    @if (bokning.Genomförd)
                     {
                         <p class="text-center text-success fs-4">Bokning avslutad</p>
                         <p class="text-center text-success fs-4">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>

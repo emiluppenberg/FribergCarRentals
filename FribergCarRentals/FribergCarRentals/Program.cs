@@ -19,8 +19,8 @@ namespace FribergCarRentals
 
             builder.Services.AddScoped<IRepository<Admin>, AdminRepository>();
             builder.Services.AddScoped<IRepository<Kund>, KundRepository>();
-            builder.Services.AddScoped<IRepository<Bil>, BilRepository>();
-            builder.Services.AddScoped<IRepository<Bokning>, BokningRepository>();
+            builder.Services.AddScoped<IBilRepository, BilRepository>();
+            builder.Services.AddScoped<IBokningRepository, BokningRepository>();
 
             builder.Services.AddAuthentication("MyCookie")
                 .AddCookie("MyCookie");

@@ -4,16 +4,16 @@
     ViewData["Title"] = "Bilar";
 }
 
-<div class="text-center">
+<div class="text-center mt-5">
     <h1>Våra bilar</h1>
-    <a class="btn btn-primary" asp-action="NyBil">Ny bil</a>
+    <a class="btn btn-dark" asp-action="NyBil">Lägg till ny bil</a>
 </div>
 
 <div class="d-flex flex-column">
     @foreach (var bil in Model)
     {
-        <p class="text-center fs-4 w-100" id="result-@bil.Id"></p>
-        <div class="flex-row border border-dark w-100 justify-content-between m-1" style="display: flex;" id="container-@bil.Id">
+        <p id="result-@bil.Id"></p>
+        <div class="flex-row border border-dark w-100 justify-content-between mt-1 bg-white" style="display: flex;" id="container-@bil.Id">
             <div class="w-25 border-start border-end border-dark overflow-hidden">
                 <p class="fw-bold text-center">Bilder</p>
                 <select onchange="bytBild(this, @bil.Id)">
@@ -57,14 +57,14 @@
                     <p class="fw-bold text-center">Beskrivning</p>
                     <p class="text-center">@bil.Beskrivning</p>
                 </div>
-                <div class="flex-row align-content-end" style="height: 100%;" id="ändratabort-@bil.Id">
+                <div class="flex-row w-100 align-content-end text-center" style="height: 100%;" id="ändratabort-@bil.Id">
                     <a class="btn btn-dark m-1" asp-action="ÄndraBil" asp-route-bilId="@bil.Id">Ändra</a>
                     <button class="btn btn-dark m-1" onclick="frågaTaBort(@bil.Id)">Ta bort</button>
                 </div>
-                <div class="flex-row align-content-end" style="height: 100%; display: none;" id="janej-@bil.Id">
-                    <p class="text-danger">Ta bort denna bil?</p>
-                    <button class="btn btn-secondary m-1" onclick="jaTaBort(@bil.Id)">Ja</button>
-                    <button class="btn btn-secondary m-1" onclick="nejTaBort(@bil.Id)">Nej</button>
+                <div class="flex-row w-100 align-content-end text-center" style="height: 100%; display: none;" id="janej-@bil.Id">
+                    <p class="text-danger m-0">Ta bort denna bil?</p>
+                    <button class="btn btn-dark m-1" onclick="jaTaBort(@bil.Id)">Ja</button>
+                    <button class="btn btn-dark m-1" onclick="nejTaBort(@bil.Id)">Nej</button>
                 </div>
             </div>
         </div>
@@ -120,6 +120,7 @@
             const result = await response.text();
             if (response.ok){
                 document.getElementById("result-" + bilId).textContent = result;
+                document.getElementById("result-" + bilId).classList = "text-center fs-4 w-100 text-success";
                 document.getElementById("container-" + bilId).style.display = 'none';
             }
             else {

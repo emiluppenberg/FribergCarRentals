@@ -4,10 +4,7 @@
     ViewData["Title"] = "Ändra bil";
 }
 
-<h1></h1>
-
-<h4></h4>
-<hr />
+<h1 class="text-center mt-5">Ändra bil</h1>
 <div class="row">
     <form class="d-flex flex-wrap flex-row justify-content-between">
         <input type="hidden" id="id" value="@Model.Id" />
@@ -59,10 +56,10 @@
             <textarea asp-for="Beskrivning" id="beskrivning" class="form-control"></textarea>
         </div>
         <div class="form-group w-50 p-1 justify-content-evenly align-content-center">
-            <input type="button" value="Ny bild" onclick="nyBild()" class="btn btn-secondary" />
-            <input type="button" value="Spara ändringar" onclick="ändraBil()" class="btn btn-primary" />
+            <input type="button" value="Ny bild" onclick="nyBild()" class="btn btn-dark" />
+            <input type="button" value="Spara ändringar" onclick="ändraBil()" class="btn btn-dark" />
             <span id="result"></span>
-            <a asp-action="Bilar" class="btn btn-primary">Tillbaka</a>
+            <a asp-action="Bilar" class="btn btn-dark">Tillbaka</a>
         </div>
         <div class="d-flex flex-row w-100 justify-content-center">
             <h5>Bilder</h5>
@@ -76,9 +73,9 @@
                     <div class="form-group w-50 p-1" id="bild-@count-container">
                         <div class="d-flex flex-row">
                             <input type="text" class="form-control" onchange="nyImg(this)" id="bild-@count" value="@bild" />
-                            <input type="button" class="btn btn-danger" onclick="taBortBild(this)" id="bild-@count-tabort" value="Ta bort" />
+                            <input type="button" class="btn btn-danger" onclick="taBortBild(this)" id="bild-@count-tabort" value="Ta bort" style="height: 100%;" />
                         </div>
-                        <div class="w-100 align-content-center border border-dark overflow-hidden">
+                        <div class="w-100 align-content-center border border-dark overflow-hidden bg-white">
                             <img src="@bild" id="bild-@count-img" />
                         </div>
                     </div>
@@ -105,9 +102,9 @@
                     `<div class='form-group w-50 p-1' id='bild-${count}-container'>
                         <div class='d-flex flex-row'>
                             <input type='text' class='form-control' id='bild-${count}' onchange='nyImg(this)' placeholder='Klistra in bild-url' />
-                            <input type='button' class='btn btn-danger' id='bild-${count}-tabort' onclick='taBortBild(this)' value='Ta bort' />
+                            <input type='button' class='btn btn-danger' id='bild-${count}-tabort' onclick='taBortBild(this)' value='Ta bort' style='height: 100%;'/>
                         </div>
-                        <div class='w-100 align-content-center border border-dark overflow-hidden'>
+                        <div class='w-100 align-content-center border border-dark overflow-hidden bg-white' style='display: none;'>
                             <img id='bild-${count}-img'/>
                         </div>
                     </div>`);
@@ -116,7 +113,7 @@
         function nyImg(input){
             var image = document.getElementById(input.id + "-img");
             var div = image.parentElement;
-            div.style.height = div.getBoundingClientRect().width + "px";
+            div.style.display = "block";
             image.src = input.value;
             resizeImg(image);
         }
@@ -158,7 +155,7 @@
                 }
 
                 const response = await fetch("/Admin/ÄndraBil", {
-                    method: "POST",
+                    method: "PUT",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify(bil)
                 });

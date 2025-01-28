@@ -16,7 +16,7 @@ namespace FribergCarRentals.Models
         public virtual Kund Kund { get; set; } = null!;
 
         public int BilId { get; set; }
-        public Bil Bil { get; set; } = null!;
+        public virtual Bil Bil { get; set; } = null!;
 
         public bool Genomförd { get; set; } = false;
     }

@@ -4,7 +4,7 @@
     ViewData["Title"] = "Ny bil";
 }
 
-<h1>Ny bil</h1>
+<h1 class="text-center mt-5">Ny bil</h1>
 
 <div class="row">
     <form asp-action="NyBil" class="d-flex flex-wrap flex-row justify-content-between">
@@ -56,11 +56,11 @@
             <textarea asp-for="Beskrivning" id="beskrivning" class="form-control"></textarea>
         </div>
         <div class="form-group w-50 p-1 justify-content-evenly align-content-center">
-            <input type="button" value="Ny bild" onclick="nyBild()" class="btn btn-secondary" />
-            <input type="button" value="Skapa bil" onclick="skapaBil()" class="btn btn-primary" />
+            <input type="button" value="Ny bild" onclick="nyBild()" class="btn btn-dark" />
+            <input type="button" value="Skapa bil" onclick="skapaBil()" class="btn btn-dark" />
             <span id="result"></span>
-            <a asp-action="Bilar" class="btn btn-primary">Tillbaka</a>
-            <a id="nybilbutton" asp-action="NyBil" class="btn btn-primary" style="display: none;">Ny bil</a>
+            <a asp-action="Bilar" class="btn btn-dark">Tillbaka</a>
+            <a id="nybilbutton" asp-action="NyBil" class="btn btn-dark" style="display: none;">Ny bil</a>
         </div>
         <div class="d-flex flex-row w-100 justify-content-center">
             <h5>Bilder</h5>
@@ -70,17 +70,14 @@
             <div class="form-group w-50 p-1" id="bild0container">
                 <div class="d-flex flex-row">
                     <input type="text" class="form-control" id="bild0" onchange="nyImg(this)" placeholder="Klistra in bild-url" />
-                    <input type="button" class="btn btn-danger" id="bild0tabort" onclick="taBortBild(this)" value="Ta bort" />
+                    <input type="button" class="btn btn-danger" id="bild0tabort" onclick="taBortBild(this)" value="Ta bort" style="height: 100%;" />
                 </div>
-                <div class="w-100 align-content-center border border-dark overflow-hidden">
+                <div class="w-100 align-content-center border border-dark overflow-hidden bg-white" style="display: none;">
                     <img id="bild0img" />
                 </div>
             </div>
         </div>
     </form>
-</div>
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {
@@ -92,9 +89,9 @@
                     `<div class='form-group w-50 p-1' id='bild${count}container'>
                         <div class='d-flex flex-row'>
                             <input type='text' class='form-control' id='bild${count}' onchange='nyImg(this)' placeholder='Klistra in bild-url' />
-                            <input type='button' class='btn btn-danger' id='bild${count}tabort' onclick='taBortBild(this)' value='Ta bort' />
+                            <input type='button' class='btn btn-danger' id='bild${count}tabort' onclick='taBortBild(this)' value='Ta bort' style='height: 100%;' />
                         </div>
-                        <div class='w-100 align-content-center border border-dark overflow-hidden'>
+                        <div class='w-100 align-content-center border border-dark overflow-hidden bg-white' style='display: none;'>
                             <img id='bild${count}img'/>
                         </div>
                     </div>`);
@@ -121,7 +118,7 @@
         function nyImg(input){
             var image = document.getElementById(input.id + "img");
             var div = image.parentElement;
-            div.style.height = div.getBoundingClientRect().width + "px";
+            div.style.display = "block";
             image.src = input.value;
             resizeImg(image);
         }

@@ -4,13 +4,13 @@
     ViewData["Title"] = "Kund bokningar";
 }
 
-<h1 class="text-center">Bokningar för @ViewBag.KundEmail</h1>
+<h1 class="text-center mt-5">Bokningar för @ViewBag.KundEmail</h1>
 
 <div class="d-flex flex-column">
     @foreach (var bokning in Model)
     {
         <p class="text-center fs-4 w-100" id="result-@bokning.Id"></p>
-        <div class="flex-row border border-dark w-100 justify-content-between m-1" style="display: flex;" id="container-@bokning.Id">
+        <div class="flex-row border border-dark w-100 justify-content-between bg-white mt-1" style="display: flex;" id="container-@bokning.Id">
             <div class="w-25 border-start border-end border-dark overflow-hidden">
                 <p class="fw-bold text-center">Bilder</p>
                 <select onchange="bytBild(this, @bokning.Id)">
@@ -69,7 +69,7 @@
                             <button class="btn btn-secondary m-1" style="height: 2em;" onclick="nejTaBort(@bokning.Id)">Nej</button>
                         </div>
                     }
-                    else if (bokning.Startdatum < DateTime.Today && !bokning.Genomförd)
+                    @if (bokning.Startdatum <= DateTime.Today && !bokning.Genomförd)
                     {
                         <p class="text-center text-warning fs-4">Pågående bokning</p>
                         <p class="text-center text-warning fs-4">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
@@ -83,7 +83,7 @@
                             <button class="btn btn-secondary m-1" style="height: 2em;" onclick="nejTaBort(@bokning.Id)">Nej</button>
                         </div>
                     }
-                    else if (bokning.Genomförd)
+                    @if (bokning.Genomförd)
                     {
                         <p class="text-center text-success fs-4">Avslutad bokning</p>
                         <p class="text-center text-success fs-4">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
