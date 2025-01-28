@@ -1,17 +1,19 @@
 ﻿@model IEnumerable<FribergCarRentals.Models.Bil>
 
 @{
-    ViewData["Title"] = "Kommande bokningar";
+    ViewData["Title"] = "Bilar";
 }
 
 <div class="text-center mt-5">
-    <h1>Kommande bokningar</h1>
+    <h1>Våra bilar</h1>
+    <a class="btn btn-dark" asp-action="NyBilAdmin" asp-controller="Bilar">Lägg till ny bil</a>
 </div>
+
 <div class="d-flex flex-column">
     @foreach (var bil in Model)
     {
-        <p class="text-center fs-4 w-100" id="result-@bil.Id" style="display: block;"></p>
-        <div class="flex-row border border-dark w-100 justify-content-between bg-white mt-1" style="display: flex;" id="container-@bil.Id">
+        <p id="result-@bil.Id"></p>
+        <div class="flex-row border border-dark w-100 justify-content-between mt-1 bg-white" style="display: flex;" id="container-@bil.Id">
             <div class="w-25 border-start border-end border-dark overflow-hidden">
                 <p class="fw-bold text-center">Bilder</p>
                 <select onchange="bytBild(this, @bil.Id)">
@@ -55,29 +57,16 @@
                     <p class="fw-bold text-center">Beskrivning</p>
                     <p class="text-center">@bil.Beskrivning</p>
                 </div>
+                <div class="flex-row w-100 align-content-end text-center" style="height: 100%;" id="ändratabort-@bil.Id">
+                    <a class="btn btn-dark m-1" asp-action="ÄndraBilAdmin" asp-controller="Bilar" asp-route-bilId="@bil.Id">Ändra</a>
+                    <button class="btn btn-dark m-1" onclick="frågaTaBort(@bil.Id)">Ta bort</button>
+                </div>
+                <div class="flex-row w-100 align-content-end text-center" style="height: 100%; display: none;" id="janej-@bil.Id">
+                    <p class="text-danger m-0">Ta bort denna bil?</p>
+                    <button class="btn btn-dark m-1" onclick="jaTaBort(@bil.Id)">Ja</button>
+                    <button class="btn btn-dark m-1" onclick="nejTaBort(@bil.Id)">Nej</button>
+                </div>
             </div>
-        </div>
-        <div class="d-flex flex-column border-start border-end border-bottom border-dark bg-white w-100 text-center" id="datum-@bil.Id">
-            @foreach (var bokning in bil.Bokningar)
-            {
-                <div class="text-center my-0 border-top w-100">
-                    <p class="text-danger" id="result-@bokning.Id"></p>
-                </div>
-                <div class="flex-row w-100 justify-content-center my-1 border-bottom" id="container-@bokning.Id" style="display: flex;">
-                    <p class="text-danger mx-1">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
-                    <p class="fw-bold mx-1">Bokad av: </p>
-                    <p class="mx-1">@bokning.Kund.Email</p>
-                    <div class="flex-row" id="ändratabort-@bokning.Id" style="display: flex;">
-                        <a class="btn btn-dark mx-1" asp-action="ÄndraBokning" asp-route-bokningId="@bokning.Id">Ändra</a>
-                        <button class="btn btn-dark mx-1" onclick="frågaTaBort(@bokning.Id)">Ta bort</button>
-                    </div>
-                    <div class="flex-row" id="janej-@bokning.Id" style="display: none;">
-                        <p class="text-danger mx-1">Ta bort denna bokning?</p>
-                        <button class="btn btn-dark mx-1" onclick="jaTaBort(@bokning.Id)">Ja</button>
-                        <button class="btn btn-dark mx-1" onclick="nejTaBort(@bokning.Id)">Nej</button>
-                    </div>
-                </div>
-            }
         </div>
     }
 </div>
@@ -116,27 +105,27 @@
             resizeImg(image);
         }
 
-        function frågaTaBort(bokningId){
-                    document.getElementById("ändratabort-" + bokningId).style.display = 'none';
-                    document.getElementById("janej-" + bokningId).style.display = 'flex';
-            }
-
-        function nejTaBort(bokningId){
-                document.getElementById("janej-" + bokningId).style.display = 'none';
-                document.getElementById("ändratabort-" + bokningId).style.display = 'flex';
+        function frågaTaBort(bilId){
+            document.getElementById("ändratabort-" + bilId).style.display = 'none';
+            document.getElementById("janej-" + bilId).style.display = 'block';
         }
 
-        async function jaTaBort(bokningId){
-            const response = await fetch(`/Admin/TaBortBokning?bokningId=${bokningId}`, {method: "DELETE"})
+        function nejTaBort(bilId){
+            document.getElementById("janej-" + bilId).style.display = 'none';
+            document.getElementById("ändratabort-" + bilId).style.display = 'block';
+        }
+
+        async function jaTaBort(bilId){
+            const response = await fetch(`/Bilar/TaBortBilAdmin?bilId=${bilId}`, { method: "PUT" });
             const result = await response.text();
             if (response.ok){
-                document.getElementById("result-" + bokningId).textContent = result;
-                document.getElementById("result-" + bokningId).classList = "text-danger";
-                document.getElementById("container-" + bokningId).style.display = 'none';
+                document.getElementById("result-" + bilId).textContent = result;
+                document.getElementById("result-" + bilId).classList = "text-center fs-4 w-100 text-success";
+                document.getElementById("container-" + bilId).style.display = 'none';
             }
             else {
+                const returnUrl = window.location.pathname;
                 const error = encodeURIComponent(result);
-                const returnUrl = encodeURIComponent(window.location.pathname);
                 window.location.href = `/Home/Error?error=${error}&returnUrl=${returnUrl}`;
             }
         }

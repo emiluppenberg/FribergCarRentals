@@ -1,13 +1,13 @@
 ﻿@model FribergCarRentals.Models.Bil
 
 @{
-    ViewData["Title"] = "Ny bil";
+    ViewData["Title"] = "Ändra bil";
 }
 
-<h1 class="text-center mt-5">Ny bil</h1>
-
+<h1 class="text-center mt-5">Ändra bil</h1>
 <div class="row">
-    <form asp-action="NyBil" class="d-flex flex-wrap flex-row justify-content-between">
+    <form class="d-flex flex-wrap flex-row justify-content-between">
+        <input type="hidden" id="id" value="@Model.Id" />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <div class="form-group w-50 p-1">
             <label asp-for="Tillverkare" class="control-label"></label>
@@ -57,45 +57,129 @@
         </div>
         <div class="form-group w-50 p-1 justify-content-evenly align-content-center">
             <input type="button" value="Ny bild" onclick="nyBild()" class="btn btn-dark" />
-            <input type="button" value="Skapa bil" onclick="skapaBil()" class="btn btn-dark" />
+            <input type="button" value="Spara ändringar" onclick="ändraBil()" class="btn btn-dark" />
             <span id="result"></span>
-            <a asp-action="Bilar" class="btn btn-dark">Tillbaka</a>
-            <a id="nybilbutton" asp-action="NyBil" class="btn btn-dark" style="display: none;">Ny bil</a>
+            <a asp-action="IndexAdmin" asp-controller="Bilar" class="btn btn-dark">Tillbaka</a>
         </div>
         <div class="d-flex flex-row w-100 justify-content-center">
             <h5>Bilder</h5>
             <span id="errorBilder" class="text-danger"></span>
         </div>
-        <div class="d-flex flex-wrap flex-row justify-content-between w-100" id="nybild">
-            <div class="form-group w-50 p-1" id="bild0container">
-                <div class="d-flex flex-row">
-                    <input type="text" class="form-control" id="bild0" onchange="nyImg(this)" placeholder="Klistra in bild-url" />
-                    <input type="button" class="btn btn-danger" id="bild0tabort" onclick="taBortBild(this)" value="Ta bort" style="height: 100%;" />
-                </div>
-                <div class="w-100 align-content-center border border-dark overflow-hidden bg-white" style="display: none;">
-                    <img id="bild0img" />
-                </div>
-            </div>
+        <div class="d-flex flex-wrap flex-row justify-content-between w-100" id="bilder">
+            @{
+                int count = 0;
+                foreach (var bild in Model.Bilder)
+                {
+                    <div class="form-group w-50 p-1" id="bild-@count-container">
+                        <div class="d-flex flex-row">
+                            <input type="text" class="form-control" onchange="nyImg(this)" id="bild-@count" value="@bild" />
+                            <input type="button" class="btn btn-danger" onclick="taBortBild(this)" id="bild-@count-tabort" value="Ta bort" style="height: 100%;" />
+                        </div>
+                        <div class="w-100 align-content-center border border-dark overflow-hidden bg-white">
+                            <img src="@bild" id="bild-@count-img" />
+                        </div>
+                    </div>
+                }
+            }
         </div>
     </form>
 </div>
 
 @section Scripts {
     <script>
-        function nyBild() {
-                var count = $("#nybild >div").length;
+        window.onload = function () {
+            var images = document.querySelectorAll('img');
 
-                $("#nybild").append(
-                    `<div class='form-group w-50 p-1' id='bild${count}container'>
+            images.forEach(function (image){
+                resizeImg(image);
+            });
+        }
+
+        function nyBild() {
+                var count = $("#bilder >div").length;
+
+                $("#bilder").append(
+                    `<div class='form-group w-50 p-1' id='bild-${count}-container'>
                         <div class='d-flex flex-row'>
-                            <input type='text' class='form-control' id='bild${count}' onchange='nyImg(this)' placeholder='Klistra in bild-url' />
-                            <input type='button' class='btn btn-danger' id='bild${count}tabort' onclick='taBortBild(this)' value='Ta bort' style='height: 100%;' />
+                            <input type='text' class='form-control' id='bild-${count}' onchange='nyImg(this)' placeholder='Klistra in bild-url' />
+                            <input type='button' class='btn btn-danger' id='bild-${count}-tabort' onclick='taBortBild(this)' value='Ta bort' style='height: 100%;'/>
                         </div>
                         <div class='w-100 align-content-center border border-dark overflow-hidden bg-white' style='display: none;'>
-                            <img id='bild${count}img'/>
+                            <img id='bild-${count}-img'/>
                         </div>
                     </div>`);
                 }
+
+        function nyImg(input){
+            var image = document.getElementById(input.id + "-img");
+            var div = image.parentElement;
+            div.style.display = "block";
+            image.src = input.value;
+            resizeImg(image);
+        }
+
+        function taBortBild(input){
+            var div = input.parentElement;
+            var container = div.parentElement;
+            let child = container.lastElementChild;
+            while (child){
+                container.removeChild(child);
+                child = container.lastElementChild;
+            }
+            container.remove();
+        }
+
+        async function ändraBil() {
+                var bil = {};
+
+                bil.Id = $("#id").val();
+                bil.Tillverkare = $("#tillverkare").val();
+                bil.Årsmodell = $("#årsmodell").val();
+                bil.Modell = $("#modell").val();
+                bil.Drivning = $("#drivning").val();
+                bil.Bränsle = $("#bränsle").val();
+                bil.Växellåda = $("#växellåda").val();
+                bil.Beskrivning = $("#beskrivning").val();
+
+                var bilder = $("#bilder input[type='text']")
+                    .map(function () {
+                        return $(this).val();
+                    })
+                    .get()
+                    .filter(function (val) {
+                        return val.length > 0;
+                    });
+
+                if (bilder.length > 0){
+                    bil.Bilder = bilder;
+                }
+
+                const response = await fetch("/Bilar/ÄndraBilAdmin", {
+                    method: "PUT",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify(bil)
+                });
+
+                if (response.ok){
+                    const result = await response.text();
+                    $("input, textarea, select").prop("disabled", true).addClass("disabled");
+                    document.getElementById("result").textContent = result;
+                }
+                else {
+                    const data = await response.json();
+
+                    if (data.errors){
+                        for (const key in data.errors){
+                                $(`#error${key}`).text(data.errors[key].join(""));
+                            }
+                    }
+                    if (data.error){
+                        const returnUrl = window.location.pathname;
+                        const error = encodeURIComponent(data.error);
+                        window.location.href = `/Home/Error?error=${data.error}&returnUrl=${returnUrl}`;
+                    }
+                }
+            }
 
         function resizeImg(image){
             var div = image.parentElement;
@@ -114,76 +198,5 @@
             image.style.width = (image.naturalWidth * scaleFactor) + 'px';
             image.style.height = (image.naturalHeight * scaleFactor) + 'px';
         }
-
-        function nyImg(input){
-            var image = document.getElementById(input.id + "img");
-            var div = image.parentElement;
-            div.style.display = "block";
-            image.src = input.value;
-            resizeImg(image);
-        }
-
-        function taBortBild(input){
-            var div = input.parentElement;
-            var container = div.parentElement;
-            let child = container.lastElementChild;
-            while (child){
-                container.removeChild(child);
-                child = container.lastElementChild;
-            }
-            container.remove();
-        }
-
-        async function skapaBil() {
-                var bil = {};
-
-                bil.Tillverkare = $("#tillverkare").val();
-                bil.Årsmodell = $("#årsmodell").val();
-                bil.Modell = $("#modell").val();
-                bil.Drivning = $("#drivning").val();
-                bil.Bränsle = $("#bränsle").val();
-                bil.Växellåda = $("#växellåda").val();
-                bil.Beskrivning = $("#beskrivning").val();
-
-                var bilder = $("#nybild input[type='text']")
-                    .map(function (){
-                        return $(this).val();
-                    })
-                    .get()
-                    .filter(function (val){
-                        return val.length > 0;
-                    });
-
-                if (bilder.length > 0){
-                    bil.Bilder = bilder;
-                }
-
-                const response = await fetch("/Admin/NyBil", {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify(bil)
-                });
-
-                if (response.ok){
-                    $("input, textarea, select").prop("disabled", true).addClass("disabled");
-                    document.getElementById("nybilbutton").style.display = 'inline';
-                    const result = await response.text();
-                    $("#result").text(result);
-                }
-                else {
-                    const data = await response.json();
-
-                    if (data.errors){
-                        for (const key in data.errors){
-                                $(`#error${key}`).text(data.errors[key].join(""));
-                            }
-                    }
-                    if (data.error){
-                        const returnUrl = window.location.pathname;
-                        const error = encodeURIComponent(data.error);
-                        window.location.href = `/Home/Error?error=${error}&returnUrl=${returnUrl}`;
-                    }
-                }
-            }
     </script>
 }

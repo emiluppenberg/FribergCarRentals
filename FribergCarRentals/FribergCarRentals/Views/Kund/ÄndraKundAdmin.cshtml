@@ -8,7 +8,7 @@
 
 <div class="w-100 d-flex justify-content-center">
     <div class="col-md-4">
-        <form asp-action="ÄndraKund">
+        <form asp-action="ÄndraKundAdmin" asp-controller="Kund">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <div class="form-group">
@@ -53,7 +53,7 @@
             </div>
             <div class="form-group mt-1 d-flex justify-content-between">
                 <input type="submit" value="Spara ändringar" class="btn btn-dark" />
-                <a class="btn btn-dark" asp-action="Kunder">Tillbaka</a>
+                <a class="btn btn-dark" asp-action="KunderAdmin" asp-controller="Kund">Tillbaka</a>
             </div>
         </form>
     </div>

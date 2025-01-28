@@ -11,10 +11,12 @@ namespace FribergCarRentals.Controllers
     public class KundController : Controller
     {
         private readonly IRepository<Kund> kundRepository;
+        private readonly IBokningRepository bokningRepository;
 
-        public KundController(IRepository<Kund> kundRepository)
+        public KundController(IRepository<Kund> kundRepository, IBokningRepository bokningRepository)
         {
             this.kundRepository = kundRepository;
+            this.bokningRepository = bokningRepository;
         }
 
         [HttpGet]
@@ -136,6 +138,119 @@ namespace FribergCarRentals.Controllers
             var kund = await kundRepository.GetByIdAsync(kundId);
 
             return View(kund);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> KunderAdmin()
+        {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            {
+                return RedirectToAction(
+                    "Error",
+                    "Home",
+                    new
+                    {
+                        error = "Adminbehörighet krävs"
+                    });
+            }
+
+            var kunder = await kundRepository.GetAllAsync();
+
+            return View(kunder);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ÄndraKundAdmin(int kundId)
+        {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            {
+                return RedirectToAction(
+                    "Error",
+                    "Home",
+                    new
+                    {
+                        error = "Adminbehörighet krävs"
+                    });
+            }
+
+            var kund = await kundRepository.GetByIdAsync(kundId);
+
+            return View(kund);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ÄndraKundAdmin(Kund kund)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(kund);
+            }
+
+            try
+            {
+                kundRepository.Update(kund);
+                await kundRepository.SaveChangesAsync();
+                ViewBag.Result = "Ändringar sparade";
+                return View();
+            }
+            catch (Exception ex)
+            {
+                string returnUrl = HttpContext.Request.Path;
+
+                return RedirectToAction(
+                    "Error",
+                    "Home",
+                    new
+                    {
+                        error = ex.Message,
+                        returnUrl = returnUrl
+                    });
+            }
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> TaBortKundAdmin(int kundId)
+        {
+            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            {
+                return RedirectToAction(
+                    "Error",
+                    "Home",
+                    new
+                    {
+                        error = "Adminbehörighet krävs"
+                    });
+            }
+
+            try
+            {
+                var kund = await kundRepository.GetByIdAsync(kundId);
+
+                foreach (var bokning in kund.Bokningar)
+                {
+                    if (!bokning.Genomförd)
+                    {
+                        if (bokning.Startdatum <= DateTime.Now)
+                        {
+                            return StatusCode(400, "Kunden har en pågående bokning");
+                        }
+
+                        bokningRepository.Remove(bokning);
+                    }
+                }
+
+                await bokningRepository.SaveChangesAsync();
+
+                kundRepository.Remove(kund);
+
+                await kundRepository.SaveChangesAsync();
+
+                return Ok("Kunden har tagits bort");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
     }
 }

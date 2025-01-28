@@ -1,6 +1,56 @@
-﻿@using System.Security.Claims
+﻿@model List<Bil>
 @{
     ViewData["Title"] = "FribergCarRentals";
 }
 
-<img src="~/images/logo.png" />
+<div class="w-100 text-center mt-5">
+    <img src="~/images/logo.png" style="width: 300px;" id="logo"/>
+</div>
+<div class="d-flex w-100 justify-content-center">
+    @{
+        if (Model.Count > 0)
+        {
+
+            foreach (var bil in Model)
+            {
+                <div class="d-flex w-25 bg-white border border-dark mx-1" style="overflow: hidden;">
+                    <img src="@bil.Bilder[0]" onclick="goToBil(@bil.Id)" class="my-auto" />
+                </div>
+            }
+        }
+    }
+</div>
+
+@section Scripts {
+    <script>
+        window.onload = function () {
+            var images = Array.from(document.querySelectorAll('img')).filter(image => image.id !== "logo");
+
+            images.forEach(function (image){
+                resizeImg(image);
+            });
+        }
+
+        function resizeImg(image){
+            var div = image.parentElement;
+            var divHeight = div.getBoundingClientRect().width / 10 * 7;
+            div.style.height = divHeight + "px";
+
+            if (!image.naturalWidth || !image.naturalHeight){
+                image.onload = () => resizeImg(image);
+                return;
+            }
+
+            var widthRatio = div.getBoundingClientRect().width / image.naturalWidth;
+            var heightRatio = div.getBoundingClientRect().height / image.naturalHeight;
+            var scaleFactor = Math.min(widthRatio, heightRatio);
+
+            image.style.width = (image.naturalWidth * scaleFactor) + 'px';
+            image.style.height = (image.naturalHeight * scaleFactor) + 'px';
+        }
+
+        function goToBil(bilId){
+            window.location.href = `/Bilar/#container-${bilId}`;
+        }
+    </script>
+}

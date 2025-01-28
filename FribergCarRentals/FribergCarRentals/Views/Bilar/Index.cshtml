@@ -92,6 +92,14 @@
             images.forEach(function (image){
                 resizeImg(image);
             });
+
+            const hash = window.location.hash; // Get the anchor from the URL
+            if (hash) {
+                const targetElement = document.querySelector(hash);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+            }
         }
 
         function resizeImg(image){

@@ -72,7 +72,7 @@
                 </div>
             </div>
             <div class="d-flex flex-column">
-                <p class="fw-bold">Uppbokade datum:</p>
+                <p class="fw-bold">Otillgängliga datum:</p>
                 @foreach (var bokning in Model.Bil.Bokningar!)
                 {
                     if (bokning.Id != Model.Id && !bokning.Genomförd)

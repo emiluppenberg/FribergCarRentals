@@ -60,7 +60,7 @@
                         <p class="text-center fs-4">Kommande bokning</p>
                         <p class="text-center fs-4">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
                         <div class="flex-row justify-content-center" id="ändratabort-@bokning.Id" style="display: flex;">
-                            <a class="btn btn-dark m-1" asp-action="ÄndraBokning" asp-route-bokningId="@bokning.Id">Ändra</a>
+                            <a class="btn btn-dark m-1" asp-action="ÄndraBokningAdmin" asp-controller="Bokningar" asp-route-bokningId="@bokning.Id">Ändra</a>
                             <button class="btn btn-dark m-1" onclick="frågaTaBort(@bokning.Id)">Ta bort</button>
                         </div>
                         <div class="flex-row justify-content-center" style="display: none;" id="janej-@bokning.Id">
@@ -74,7 +74,7 @@
                         <p class="text-center text-warning fs-4">Pågående bokning</p>
                         <p class="text-center text-warning fs-4">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>
                         <div class="flex-row justify-content-center" id="ändratabort-@bokning.Id" style="display: flex;">
-                            <a class="btn btn-dark m-1" asp-action="ÄndraBokning" asp-route-bokningId="@bokning.Id">Ändra</a>
+                            <a class="btn btn-dark m-1" asp-action="ÄndraBokningAdmin" asp-controller="Bokningar" asp-route-bokningId="@bokning.Id">Ändra</a>
                             <button class="btn btn-dark m-1" onclick="frågaTaBort(@bokning.Id)">Ta bort</button>
                         </div>
                         <div class="flex-row justify-content-center" style="display: none;" id="janej-@bokning.Id">
@@ -139,7 +139,7 @@
         }
 
         async function jaTaBort(bokningId){
-            const response = await fetch(`/Admin/TaBortBokning?bokningId=${bokningId}`, {method: "DELETE"})
+            const response = await fetch(`/Bokningar/TaBortBokningAdmin?bokningId=${bokningId}`, {method: "DELETE"})
             const result = await response.text();
             if (response.ok){
                 document.getElementById("result-" + bokningId).textContent = result;

@@ -128,7 +128,7 @@
 
             console.log(bokning);
 
-            const response = await fetch(`/Admin/ÄndraBokning`, {
+            const response = await fetch(`/Bokningar/ÄndraBokningAdmin`, {
                 method: "PUT",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(bokning)

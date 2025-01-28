@@ -55,7 +55,7 @@
                     <p class="text-center">@bokning.Bil.Beskrivning</p>
                 </div>
                 <div class="d-flex flex-column justify-content-end w-100" style="height: 100%;">
-                    @if (bokning.Startdatum < DateTime.Today && !bokning.Genomförd)
+                    @if (bokning.Startdatum <= DateTime.Today && !bokning.Genomförd)
                     {
                         <p class="text-center text-warning fs-4">Pågående bokning</p>
                         <p class="text-center text-warning fs-4">@bokning.Startdatum.ToShortDateString() till @bokning.Slutdatum.ToShortDateString()</p>

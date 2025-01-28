@@ -78,7 +78,7 @@
                         </div>
                         <div class="d-flex flex-column mx-1">
                             <div class="d-flex flex-row justify-content-between">
-                                <a class="btn btn-dark" asp-action="ÄndraBokning" asp-route-bokningId="@bokning.Id">Ändra</a>
+                                <a class="btn btn-dark" asp-action="ÄndraBokningAdmin" asp-controller="Bokningar" asp-route-bokningId="@bokning.Id">Ändra</a>
                                 <button class="btn btn-dark" onclick="frågaTaBort(@bokning.Id)">Ta bort</button>
                             </div>
                             <button class="btn btn-dark mt-1" onclick="avslutaBokning(@bokning.Id)">Avsluta bokningen</button>
@@ -140,7 +140,7 @@
         }
 
         async function jaTaBort(bokningId){
-            const response = await fetch(`/Admin/TaBortBokning?bokningId=${bokningId}`, {method: "DELETE"})
+            const response = await fetch(`/Bokningar/TaBortBokningAdmin?bokningId=${bokningId}`, {method: "DELETE"})
             const result = await response.text();
             if (response.ok){
                 document.getElementById("result-" + bokningId).textContent = result;
@@ -163,7 +163,7 @@
 
             console.log(bokning);
 
-            const response = await fetch(`/Admin/AvslutaBokning`, {
+            const response = await fetch(`/Bokningar/AvslutaBokningAdmin`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(bokning)

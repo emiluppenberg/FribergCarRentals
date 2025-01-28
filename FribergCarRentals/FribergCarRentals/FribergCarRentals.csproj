@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="Views\Admin\ÄndraBil.cshtml">
+    <Content Update="Views\Bilar\ÄndraBilAdmin.cshtml">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>

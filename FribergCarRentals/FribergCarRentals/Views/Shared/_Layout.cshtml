@@ -54,19 +54,19 @@
                                     @if (Context.User.HasClaim(ClaimTypes.Role, "admin"))
                                     {
                                         <div>
-                                            <a class="dropdown-item text-dark" asp-controller="Admin" asp-action="Bilar">Bilar</a>
+                                            <a class="dropdown-item text-dark" asp-controller="Bilar" asp-action="IndexAdmin">Bilar</a>
                                         </div>
                                         <div>
-                                            <a class="dropdown-item text-dark" asp-controller="Admin" asp-action="Kunder">Kunder</a>
+                                            <a class="dropdown-item text-dark" asp-controller="Kund" asp-action="KunderAdmin">Kunder</a>
                                         </div>
                                         <div>
-                                            <a class="dropdown-item text-dark" asp-controller="Admin" asp-action="KommandeBokningar">Kommande bokningar</a>
+                                            <a class="dropdown-item text-dark" asp-controller="Bokningar" asp-action="KommandeBokningarAdmin">Kommande bokningar</a>
                                         </div>
                                         <div>
-                                            <a class="dropdown-item text-dark" asp-controller="Admin" asp-action="PågåendeBokningar">Pågående bokningar</a>
+                                            <a class="dropdown-item text-dark" asp-controller="Bokningar" asp-action="PågåendeBokningarAdmin">Pågående bokningar</a>
                                         </div>
                                         <div>
-                                            <a class="dropdown-item text-dark" asp-controller="Admin" asp-action="AvslutadeBokningar">Avslutade bokningar</a>
+                                            <a class="dropdown-item text-dark" asp-controller="Bokningar" asp-action="AvslutadeBokningarAdmin">Avslutade bokningar</a>
                                         </div>
                                         <div>
                                             <a class="dropdown-item text-dark" asp-controller="Admin" asp-action="LoggaUt">Logga ut</a>
@@ -90,7 +90,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2024 - FribergCarRentals - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2024 - FribergCarRentals
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
