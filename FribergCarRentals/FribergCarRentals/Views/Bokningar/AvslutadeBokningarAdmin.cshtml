@@ -53,6 +53,9 @@
                     <div class="d-flex flex-column w-100 align-content-center border-top border-dark">
                         <p class="fw-bold text-center">Beskrivning</p>
                         <p class="text-center">@bil.Beskrivning</p>
+                        @if (bil.ÄrAktiv == false){
+                            <p class="text-center text-danger">Bilen är inte aktiv längre</p>
+                        }
                     </div>
                 </div>
             </div>

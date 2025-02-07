@@ -36,6 +36,6 @@ namespace FribergCarRentals.Models
 
         [Required(ErrorMessage = "Bilder saknas")]
         public virtual List<string> Bilder { get; set; } = null!;
-        public virtual List<Bokning>? Bokningar { get; set; } = null!;
+        public virtual List<Bokning> Bokningar { get; set; } = new();
     }
 }

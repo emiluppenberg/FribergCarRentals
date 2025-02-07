@@ -12,16 +12,23 @@ namespace FribergCarRentals.Controllers
     {
         private readonly IRepository<Kund> kundRepository;
         private readonly IBokningRepository bokningRepository;
+        private readonly IUserService userService;
 
-        public KundController(IRepository<Kund> kundRepository, IBokningRepository bokningRepository)
+        public KundController(IRepository<Kund> kundRepository, IBokningRepository bokningRepository, IUserService userService)
         {
             this.kundRepository = kundRepository;
             this.bokningRepository = bokningRepository;
+            this.userService = userService;
         }
 
         [HttpGet]
-        public IActionResult Index(string? returnUrl)
+        public IActionResult Index(string? returnUrl, string? result)
         {
+            if (result != null)
+            {
+                ViewBag.Result = result;
+            }
+
             ViewBag.ReturnUrl = returnUrl;
             return View();
         }
@@ -36,45 +43,43 @@ namespace FribergCarRentals.Controllers
         [HttpPost]
         public async Task<IActionResult> LoggaIn(string email, string password, string? returnUrl)
         {
-            var kund = await kundRepository.FirstOrDefaultAsync(k => k.Email == email && k.Lösenord == password);
-
-            if (kund != null)
+            try
             {
-                var claims = new List<Claim>
+                var kund = await kundRepository.FirstOrDefaultAsync(k => k.Email == email && k.Lösenord == password);
+
+                if (kund != null)
                 {
-                    new Claim(ClaimTypes.Role, "kund"),
-                    new Claim(ClaimTypes.NameIdentifier, kund.Id.ToString()),
-                    new Claim(ClaimTypes.Name, kund.Email)
-                };
+                    await userService.SignInAsync(kund);
 
-                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var principal = new ClaimsPrincipal(identity);
+                    if (returnUrl != null)
+                    {
+                        return LocalRedirect(returnUrl);
+                    }
 
-                await HttpContext.SignInAsync("MyCookie", principal);
-
-                if (returnUrl != null)
-                {
-                    return LocalRedirect(returnUrl);
+                    return RedirectToAction("Index", "Home");
                 }
-            }
 
-            return RedirectToAction("Index", "Home");
+                string result = "Felaktigt email eller lösenord";
+                return RedirectToAction("Index", new { returnUrl = returnUrl, result = result });
+            }
+            catch (Exception ex)
+            {
+                return RedirectToAction(
+                    "Error",
+                    "Home",
+                    new { error = ex.Message });
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> LoggaUt(string? returnUrl)
         {
-            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "kund"))
+            await userService.SignOutAsync();
+
+            if (returnUrl != null)
             {
-                if (returnUrl != null)
-                {
-                    return LocalRedirect(returnUrl);
-                }
-
-                return RedirectToAction("Index", "Home");
+                return LocalRedirect(returnUrl);
             }
-
-            await HttpContext.SignOutAsync("MyCookie");
 
             return RedirectToAction("Index", "Home");
         }
@@ -87,95 +92,99 @@ namespace FribergCarRentals.Controllers
                 return View(kund);
             }
 
-            if (await kundRepository.FirstOrDefaultAsync(x => x.Email == kund.Email) != null)
+
+            try
             {
-                ModelState.AddModelError("Email", "Det finns redan en kund med denna email adress");
-                return View(kund);
+                if (await kundRepository.FirstOrDefaultAsync(x => x.Email == kund.Email) != null)
+                {
+                    ModelState.AddModelError("Email", "Det finns redan en kund med denna email adress");
+                    return View(kund);
+                }
+
+                await kundRepository.AddAsync(kund);
+                await kundRepository.SaveChangesAsync();
+                await userService.SignInAsync(kund);
+
+                if (returnUrl != null)
+                {
+                    return LocalRedirect(returnUrl);
+                }
+
+                return RedirectToAction("Index", "Home");
             }
-
-            await kundRepository.AddAsync(kund);
-            await kundRepository.SaveChangesAsync();
-
-            var claims = new List<Claim>
+            catch (Exception ex)
             {
-                new Claim(ClaimTypes.Role, "kund"),
-                new Claim(ClaimTypes.NameIdentifier, kund.Id.ToString()),
-                new Claim(ClaimTypes.Name, kund.Email)
-            };
-
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-
-            await HttpContext.SignInAsync("MyCookie", principal);
-
-            if (returnUrl != null)
-            {
-                return LocalRedirect(returnUrl);
+                return RedirectToAction(
+                    "Home",
+                    "Error",
+                    new
+                    {
+                        error = ex.Message
+                    });
             }
-
-            return RedirectToAction("Index", "Home");
         }
 
         [HttpGet]
         public async Task<IActionResult> MinaUppgifter()
         {
-            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "kund"))
+            try
             {
-                string returnUrl = HttpContext.Request.Path;
-
+                var kundId = userService.GetKundId();
+                var kund = await kundRepository.GetByIdAsync(kundId);
+                return View(kund);
+            }
+            catch (Exception ex)
+            {
                 return RedirectToAction(
                     "Error",
                     "Home",
                     new
                     {
-                        error = "Inloggning krävs",
-                        returnUrl = returnUrl
+                        error = ex.Message
                     });
             }
-
-            var kundId = Convert.ToInt32(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
-
-            var kund = await kundRepository.GetByIdAsync(kundId);
-
-            return View(kund);
         }
 
         [HttpGet]
         public async Task<IActionResult> KunderAdmin()
         {
-            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            try
+            {
+                userService.GetAdminId();
+                var kunder = await kundRepository.GetAllAsync();
+                return View(kunder);
+            }
+            catch (Exception ex)
             {
                 return RedirectToAction(
                     "Error",
                     "Home",
                     new
                     {
-                        error = "Adminbehörighet krävs"
+                        error = ex.Message
                     });
             }
-
-            var kunder = await kundRepository.GetAllAsync();
-
-            return View(kunder);
         }
 
         [HttpGet]
         public async Task<IActionResult> ÄndraKundAdmin(int kundId)
         {
-            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            try
+            {
+                userService.GetAdminId();
+                var kund = await kundRepository.GetByIdAsync(kundId);
+                return View(kund);
+            }
+            catch (Exception ex)
             {
                 return RedirectToAction(
                     "Error",
                     "Home",
                     new
                     {
-                        error = "Adminbehörighet krävs"
+                        error = ex.Message
                     });
             }
-
-            var kund = await kundRepository.GetByIdAsync(kundId);
-
-            return View(kund);
         }
 
         [HttpPost]
@@ -188,6 +197,7 @@ namespace FribergCarRentals.Controllers
 
             try
             {
+                userService.GetAdminId();
                 kundRepository.Update(kund);
                 await kundRepository.SaveChangesAsync();
                 ViewBag.Result = "Ändringar sparade";
@@ -211,19 +221,9 @@ namespace FribergCarRentals.Controllers
         [HttpDelete]
         public async Task<IActionResult> TaBortKundAdmin(int kundId)
         {
-            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
-            {
-                return RedirectToAction(
-                    "Error",
-                    "Home",
-                    new
-                    {
-                        error = "Adminbehörighet krävs"
-                    });
-            }
-
             try
             {
+                userService.GetAdminId();
                 var kund = await kundRepository.GetByIdAsync(kundId);
 
                 foreach (var bokning in kund.Bokningar)

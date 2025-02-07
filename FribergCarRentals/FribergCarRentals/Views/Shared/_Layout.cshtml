@@ -36,19 +36,19 @@
                         }
                         @if (Context.User.Claims.Count() != 0)
                         {
-                            <div class="nav-item dropdown">
+                            <div class="nav-item dropdown me-5">
                                 <button class="btn btn-outline-dark dropdown-toggle" type="button" data-bs-toggle="dropdown">@Context.User.FindFirstValue(ClaimTypes.Name)</button>
                                 <div class="dropdown-menu">
                                     @if (Context.User.HasClaim(ClaimTypes.Role, "kund"))
                                     {
-                                        <div class="dropdown-item">
-                                            <a class="nav-link text-dark" asp-controller="Bokningar" asp-action="Index">Mina bokningar</a>
+                                        <div>
+                                            <a class="dropdown-item text-dark" asp-controller="Bokningar" asp-action="Index">Mina bokningar</a>
                                         </div>
-                                        <div class="dropdown-item">
-                                            <a class="nav-link text-dark" asp-controller="Kund" asp-action="MinaUppgifter">Mina uppgifter</a>
+                                        <div>
+                                            <a class="dropdown-item text-dark" asp-controller="Kund" asp-action="MinaUppgifter">Mina uppgifter</a>
                                         </div>
-                                        <div class="dropdown-item">
-                                            <a class="nav-link text-dark" asp-controller="Kund" asp-action="LoggaUt">Logga ut</a>
+                                        <div>
+                                            <a class="dropdown-item text-dark" asp-controller="Kund" asp-action="LoggaUt">Logga ut</a>
                                         </div>
                                     }
                                     @if (Context.User.HasClaim(ClaimTypes.Role, "admin"))

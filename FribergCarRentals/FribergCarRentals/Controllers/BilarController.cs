@@ -1,6 +1,7 @@
 ﻿using FribergCarRentals.Data;
 using FribergCarRentals.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq.Expressions;
 using System.Security.Claims;
 
 namespace FribergCarRentals.Controllers
@@ -8,46 +9,79 @@ namespace FribergCarRentals.Controllers
     public class BilarController : Controller
     {
         private readonly IBilRepository bilRepository;
+        private readonly IUserService userService;
 
-        public BilarController(IBilRepository bilRepository)
+        public BilarController(IBilRepository bilRepository, IUserService userService)
         {
             this.bilRepository = bilRepository;
+            this.userService = userService;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var bilar = await bilRepository.GetAllWithBokningarAsync();
+            try
+            {
+                var bilar = await bilRepository.GetAllWithBokningarAsync();
 
-            return View(bilar);
+                return View(bilar);
+            }
+            catch (Exception ex)
+            {
+                return RedirectToAction(
+                        "Error",
+                        "Home",
+                        new
+                        {
+                            error = ex.Message
+                        });
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> IndexAdmin()
         {
-            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            try
             {
-                string returnUrl = HttpContext.Request.Path;
-                return RedirectToAction("Index", new { returnUrl = returnUrl });
+                userService.GetAdminId();
+                var bilar = await bilRepository.GetAllAsync();
+
+                return View(bilar);
+            }
+            catch (Exception ex)
+            {
+                return RedirectToAction(
+                        "Error",
+                        "Home",
+                        new
+                        {
+                            error = ex.Message
+                        });
             }
 
-            var bilar = await bilRepository.GetAllAsync();
 
-            return View(bilar);
         }
 
         [HttpGet]
         public IActionResult NyBilAdmin()
         {
-            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            try
             {
-                string returnUrl = HttpContext.Request.Path;
-                return RedirectToAction("Index", new { returnUrl = returnUrl });
+                userService.GetAdminId();
+                var model = new Bil();
+
+                return View(model);
             }
-
-            var model = new Bil();
-
-            return View(model);
+            catch (Exception ex)
+            {
+                return RedirectToAction(
+                        "Error",
+                        "Home",
+                        new
+                        {
+                            error = ex.Message
+                        });
+            }
         }
 
         [HttpPost]
@@ -56,39 +90,40 @@ namespace FribergCarRentals.Controllers
             if (!ModelState.IsValid)
             {
                 var errors = ModelState
-                    .Where(m => m.Value.Errors.Any())
+                    .Where(m => m.Value != null && m.Value.Errors.Any())
                     .ToDictionary(
                         m => m.Key,
-                        m => m.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                        m => m.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
                     );
 
                 return StatusCode(400, new { errors = errors });
             }
 
-            var bilder = new List<string>();
-
-            foreach (var bild in model.Bilder)
-            {
-                if (bild != string.Empty)
-                {
-                    bilder.Add(bild);
-                }
-            }
-
-            var bil = new Bil()
-            {
-                Tillverkare = model.Tillverkare,
-                Årsmodell = model.Årsmodell,
-                Modell = model.Modell,
-                Drivning = model.Drivning,
-                Bränsle = model.Bränsle,
-                Växellåda = model.Växellåda,
-                Beskrivning = model.Beskrivning,
-                Bilder = bilder
-            };
-
             try
             {
+                userService.GetAdminId();
+
+                var bilder = new List<string>();
+
+                foreach (var bild in model.Bilder)
+                {
+                    if (bild != string.Empty)
+                    {
+                        bilder.Add(bild);
+                    }
+                }
+
+                var bil = new Bil()
+                {
+                    Tillverkare = model.Tillverkare,
+                    Årsmodell = model.Årsmodell,
+                    Modell = model.Modell,
+                    Drivning = model.Drivning,
+                    Bränsle = model.Bränsle,
+                    Växellåda = model.Växellåda,
+                    Beskrivning = model.Beskrivning,
+                    Bilder = bilder
+                };
                 await bilRepository.AddAsync(bil);
                 await bilRepository.SaveChangesAsync();
                 return Ok("Bilen har lagts till!");
@@ -102,14 +137,9 @@ namespace FribergCarRentals.Controllers
         [HttpPut]
         public async Task<IActionResult> TaBortBilAdmin(int bilId)
         {
-            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
-            {
-                string returnUrl = HttpContext.Request.Path;
-                return RedirectToAction("Index", new { returnUrl = returnUrl });
-            }
-
             try
             {
+                userService.GetAdminId();
                 var bil = await bilRepository.GetByIdAsync(bilId);
                 bil.ÄrAktiv = false;
                 bilRepository.Update(bil);
@@ -126,49 +156,54 @@ namespace FribergCarRentals.Controllers
         [HttpGet]
         public async Task<IActionResult> ÄndraBilAdmin(int bilId)
         {
-            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            try
             {
-                string returnUrl = HttpContext.Request.Path;
-                return RedirectToAction("Index", new { returnUrl = returnUrl });
+                userService.GetAdminId();
+                var bil = await bilRepository.GetByIdAsync(bilId);
+
+                return View(bil);
             }
-
-            var bil = await bilRepository.GetByIdAsync(bilId);
-
-            return View(bil);
+            catch (Exception ex)
+            {
+                return RedirectToAction(
+                        "Error",
+                        "Home",
+                        new
+                        {
+                            error = ex.Message
+                        });
+            }
         }
 
         [HttpPut]
         public async Task<IActionResult> ÄndraBilAdmin([FromBody] Bil model)
         {
-            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
-            {
-                return StatusCode(401, "Adminbehörighet krävs");
-            }
-
             if (!ModelState.IsValid)
             {
                 var errors = ModelState
-                    .Where(m => m.Value.Errors.Any())
+                    .Where(m => m.Value != null && m.Value.Errors.Any())
                     .ToDictionary(
                         m => m.Key,
-                        m => m.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                        m => m.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
                     );
 
                 return StatusCode(400, new { errors = errors });
             }
 
-            var bilder = new List<string>();
-
-            foreach (var bild in model.Bilder)
-            {
-                if (bild != string.Empty)
-                {
-                    bilder.Add(bild);
-                }
-            }
-
             try
             {
+                userService.GetAdminId();
+
+                var bilder = new List<string>();
+
+                foreach (var bild in model.Bilder)
+                {
+                    if (bild != string.Empty)
+                    {
+                        bilder.Add(bild);
+                    }
+                }
+
                 var bil = await bilRepository.GetByIdAsync(model.Id);
 
                 bil.Tillverkare = model.Tillverkare;

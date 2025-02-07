@@ -64,9 +64,16 @@
                 <div>
                     <input type="hidden" id="bokningId" value="@Model.Id" />
                     <label for="startdatum">Startdatum</label>
-                    <input type="date" name="startDatum" class="form-control" id="startdatum" />
+                    @if (Model.Startdatum <= DateTime.Today)
+                    {
+                        <input type="date" name="startDatum" class="form-control" id="startdatum" value="@Model.Startdatum.ToShortDateString()" disabled />
+                    }
+                    else
+                    {
+                        <input type="date" name="startDatum" class="form-control" id="startdatum" value="@Model.Startdatum.ToShortDateString()" />
+                    }
                     <label for="slutdatum">Slutdatum</label>
-                    <input type="date" name="slutDatum" class="form-control" id="slutdatum" />
+                    <input type="date" name="slutDatum" class="form-control" id="slutdatum" value="@Model.Slutdatum.ToShortDateString()" />
                     <input type="button" class="btn btn-dark mt-1 w-100" value="Spara ändringar" onclick="ändraBokning(@Model.Id)" />
                 </div>
             </div>

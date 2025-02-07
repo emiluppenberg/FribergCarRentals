@@ -16,16 +16,36 @@ namespace FribergCarRentals.Controllers
             this.bilRepository = bilRepository;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var bilar = bilRepository.GetRandomBilar();
+            try
+            {
+                var bilar = new List<Bil>();
 
-            return View(bilar);
+                await foreach (var bil in bilRepository.GetRandomBilarAsync()!)
+                {
+                    bilar.Add(bil);
+                }
+
+                return View(bilar);
+            }
+            catch (Exception ex)
+            {
+                return RedirectToAction(
+                    "Error",
+                    "Home",
+                    new { error = ex.Message });
+            }
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error(string error, string returnUrl)
+        public IActionResult Error(string error, string? returnUrl)
         {
+            if (returnUrl == null)
+            {
+                returnUrl = "/Home";
+            }
+
             ViewBag.Error = error;
             ViewBag.ReturnUrl = returnUrl;
             return View();

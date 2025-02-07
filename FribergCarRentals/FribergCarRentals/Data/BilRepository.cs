@@ -57,41 +57,40 @@ namespace FribergCarRentals.Data
                 .ToListAsync();
         }
 
-        public List<Bil>? GetRandomBilar()
+        public async IAsyncEnumerable<Bil>? GetRandomBilarAsync()
         {
-            if (context.Bilar.Count() == 0)
+            if (!await context.Bilar.AnyAsync())
             {
-                return null;
+                yield break;
             }
 
             var random = new Random();
 
             var indices = new List<int>();
 
-            var bilar = new List<Bil>();
+            var aktivaBilar = await context.Bilar.Where(x => x.ÄrAktiv == true).ToListAsync();
 
-            while (bilar.Count < 3)
+            var aktivaBilarCount = aktivaBilar.Count();
+
+            int count = 0;
+
+            while (count < 3)
             {
-                var index = random.Next(0, context.Bilar.Count());
+                var index = random.Next(0, aktivaBilarCount);
 
                 if (!indices.Contains(index))
                 {
-                    if (context.Bilar.ElementAt(index).ÄrAktiv == true)
-                    {
-                        bilar.Add(context.Bilar
-                        .ElementAt(index));
-                    }
+                    yield return aktivaBilar[index];
+                    count++;
                 }
 
                 indices.Add(index);
 
-                if (bilar.Count == context.Bilar.Count())
+                if (count == aktivaBilarCount)
                 {
-                    break;
+                    yield break;
                 }
             }
-
-            return bilar;
         }
     }
 }

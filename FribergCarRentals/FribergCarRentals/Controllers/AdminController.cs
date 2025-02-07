@@ -16,18 +16,25 @@ namespace FribergCarRentals.Controllers
         private readonly IBilRepository bilRepository;
         private readonly IRepository<Kund> kundRepository;
         private readonly IBokningRepository bokningRepository;
+        private readonly IUserService userService;
 
-        public AdminController(IRepository<Admin> adminRepository, IBilRepository bilRepository, IRepository<Kund> kundRepository, IBokningRepository bokningRepository)
+        public AdminController(IRepository<Admin> adminRepository, IBilRepository bilRepository, IRepository<Kund> kundRepository, IBokningRepository bokningRepository, IUserService userService)
         {
             this.adminRepository = adminRepository;
             this.bilRepository = bilRepository;
             this.kundRepository = kundRepository;
             this.bokningRepository = bokningRepository;
+            this.userService = userService;
         }
 
         [HttpGet]
-        public IActionResult Index(string? returnUrl)
+        public IActionResult Index(string? returnUrl, string? result)
         {
+            if (result != null)
+            {
+                ViewBag.Result = result;
+            }
+
             ViewBag.ReturnUrl = returnUrl;
             return View();
         }
@@ -35,45 +42,43 @@ namespace FribergCarRentals.Controllers
         [HttpPost]
         public async Task<IActionResult> LoggaIn(string email, string password, string? returnUrl)
         {
-            var admin = await adminRepository.FirstOrDefaultAsync(a => a.Email == email && a.Lösenord == password);
-
-            if (admin != null)
+            try
             {
-                var claims = new List<Claim>
+                var admin = await adminRepository.FirstOrDefaultAsync(a => a.Email == email && a.Lösenord == password);
+
+                if (admin != null)
                 {
-                    new Claim(ClaimTypes.Role, "admin"),
-                    new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString()),
-                    new Claim(ClaimTypes.Name, admin.Email)
-                };
+                    await userService.SignInAsync(admin);
 
-                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var principal = new ClaimsPrincipal(identity);
+                    if (returnUrl != null)
+                    {
+                        return LocalRedirect(returnUrl);
+                    }
 
-                await HttpContext.SignInAsync("MyCookie", principal);
-
-                if (returnUrl != null)
-                {
-                    return LocalRedirect(returnUrl);
+                    return RedirectToAction("Index", "Home");
                 }
-            }
 
-            return RedirectToAction("Index", "Home");
+                string result = "Felaktigt email eller lösenord";
+                return RedirectToAction("Index", new { returnUrl = returnUrl, result = result });
+            }
+            catch (Exception ex)
+            {
+                return RedirectToAction(
+                    "Error",
+                    "Home",
+                    new { error = ex.Message });
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> LoggaUt(string? returnUrl)
         {
-            if (!HttpContext.User.HasClaim(ClaimTypes.Role, "admin"))
+            await userService.SignOutAsync();
+
+            if (returnUrl != null)
             {
-                if (returnUrl != null)
-                {
-                    return LocalRedirect(returnUrl);
-                }
-
-                return RedirectToAction("Index", "Home");
+                return LocalRedirect(returnUrl);
             }
-
-            await HttpContext.SignOutAsync("MyCookie");
 
             return RedirectToAction("Index", "Home");
         }

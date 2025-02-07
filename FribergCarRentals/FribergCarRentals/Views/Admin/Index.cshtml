@@ -3,6 +3,10 @@
 }
 
 <h1 class="text-center mt-5">Logga in som administratör</h1>
+@if (ViewBag.Result != null)
+{
+    <p class="text-center">@ViewBag.Result</p>
+}
 <form asp-action="LoggaIn" class="d-flex justify-content-center">
     <div class="d-flex flex-column w-25 justify-content-center">
         <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />

@@ -1,7 +1,6 @@
 using FribergCarRentals.Data;
 using FribergCarRentals.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,9 +20,14 @@ namespace FribergCarRentals
             builder.Services.AddScoped<IRepository<Kund>, KundRepository>();
             builder.Services.AddScoped<IBilRepository, BilRepository>();
             builder.Services.AddScoped<IBokningRepository, BokningRepository>();
+            builder.Services.AddSingleton<IUserService, UserService>();
+            builder.Services.AddHttpContextAccessor();
 
             builder.Services.AddAuthentication("MyCookie")
-                .AddCookie("MyCookie");
+                .AddCookie("MyCookie", options =>
+                {
+                    options.SlidingExpiration = false;
+                });
 
             builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(new ConfigurationBuilder()

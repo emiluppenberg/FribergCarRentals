@@ -35,36 +35,39 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @if (Model != null)
         {
-            <tr class="bg-white border-start border-end border-dark">
-                <td>
-                    @Html.DisplayFor(modelItem => item.Email)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Förnamn)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Efternamn)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.TelefonNummer)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Adress)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Postkod)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Ort)
-                </td>
-                <td>
-                    <a class="btn btn-dark" asp-action="ÄndraKundAdmin" asp-controller="Kund" asp-route-kundId="@item.Id">Ändra</a>
-                    <a class="btn btn-dark" asp-action="KundBokningarAdmin" asp-controller="Bokningar" asp-route-kundId="@item.Id">Bokningar</a>
-                    <button class="btn btn-dark" onclick="taBortKund(@item.Id)">Ta bort</button>
-                </td>
-            </tr>
+            foreach (var item in Model)
+            {
+                <tr class="bg-white border-start border-end border-dark">
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Email)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Förnamn)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Efternamn)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.TelefonNummer)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Adress)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Postkod)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Ort)
+                    </td>
+                    <td>
+                        <a class="btn btn-dark" asp-action="ÄndraKundAdmin" asp-controller="Kund" asp-route-kundId="@item.Id">Ändra</a>
+                        <a class="btn btn-dark" asp-action="KundBokningarAdmin" asp-controller="Bokningar" asp-route-kundId="@item.Id">Bokningar</a>
+                        <button class="btn btn-dark" onclick="taBortKund(@item.Id)">Ta bort</button>
+                    </td>
+                </tr>
+            }
         }
     </tbody>
 </table>

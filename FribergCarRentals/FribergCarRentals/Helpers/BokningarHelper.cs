@@ -6,7 +6,7 @@ namespace FribergCarRentals.Helpers
     {
         public static string? ValidateExistingBokning(Bokning bokning, Bokning model)
         {
-            if (bokning.Startdatum <= DateTime.Now)
+            if (bokning.Startdatum <= DateTime.Today)
             {
                 if (bokning.Startdatum != model.Startdatum)
                 {
@@ -14,22 +14,7 @@ namespace FribergCarRentals.Helpers
                 }
             }
 
-            if (model.Startdatum >= model.Slutdatum)
-            {
-                return "Startdatum kan inte vara längre fram eller samma som slutdatum";
-            }
-
-            if (model.Slutdatum <= DateTime.Now)
-            {
-                return "Slutdatum måste vara framåt i tiden";
-            }
-
-            return null;
-        }
-
-        public static string? ValidateNewBokning(Bokning model)
-        {
-            if (model.Startdatum <= DateTime.Now)
+            if (model.Startdatum <= DateTime.Today && model.Startdatum != bokning.Startdatum)
             {
                 return "Startdatum måste vara minst en dag framåt";
             }
@@ -39,7 +24,27 @@ namespace FribergCarRentals.Helpers
                 return "Startdatum kan inte vara längre fram eller samma som slutdatum";
             }
 
-            if (model.Slutdatum <= DateTime.Now)
+            if (model.Slutdatum <= DateTime.Today)
+            {
+                return "Slutdatum måste vara framåt i tiden";
+            }
+
+            return null;
+        }
+
+        public static string? ValidateNewBokning(Bokning model)
+        {
+            if (model.Startdatum <= DateTime.Today)
+            {
+                return "Startdatum måste vara minst en dag framåt";
+            }
+
+            if (model.Startdatum >= model.Slutdatum)
+            {
+                return "Startdatum kan inte vara längre fram eller samma som slutdatum";
+            }
+
+            if (model.Slutdatum <= DateTime.Today)
             {
                 return "Slutdatum måste vara framåt i tiden";
             }

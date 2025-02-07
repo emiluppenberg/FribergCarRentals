@@ -12,10 +12,6 @@ namespace FribergCarRentals.Data
         {
             this.context = context;
         }
-        public virtual void Add(T entity)
-        {
-            context.Add(entity);
-        }
 
         public virtual async Task AddAsync(T entity)
         {
@@ -27,27 +23,10 @@ namespace FribergCarRentals.Data
             context.Remove(entity);
         }
 
-        public virtual T? FirstOrDefault(Expression<Func<T, bool>> predicate)
-        {
-            return context.Set<T>().FirstOrDefault(predicate);
-        }
-
         public virtual async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
         {
             var entity = await context.Set<T>().FirstOrDefaultAsync(predicate);
             return entity;
-        }
-
-        public virtual IEnumerable<T>? GetAll()
-        {
-            var entities = context.Set<T>().ToList();
-
-            if (entities.Count > 0)
-            {
-                return entities;
-            }
-
-            return null;
         }
 
         public virtual async Task<IEnumerable<T>?> GetAllAsync()
@@ -62,23 +41,11 @@ namespace FribergCarRentals.Data
             return null;
         }
 
-        public virtual T GetById(int id)
-        {
-            var entity = context.Find<T>(id);
-
-            return entity ?? throw new Exception($"Objektet kunde inte hittas i databasen - {typeof(T).Name} ID: {id} ");
-        }
-
         public virtual async Task<T> GetByIdAsync(int id)
         {
             var entity = await context.FindAsync<T>(id);
 
             return entity ?? throw new Exception($"Objektet kunde inte hittas i databasen - {typeof(T).Name} ID: {id} ");
-        }
-
-        public virtual void SaveChanges()
-        {
-            context.SaveChanges();
         }
 
         public virtual async Task SaveChangesAsync()
@@ -89,20 +56,6 @@ namespace FribergCarRentals.Data
         public virtual void Update(T entity)
         {
            context.Update<T>(entity);
-        }
-
-        public virtual async Task<IEnumerable<T>?> FindAllAsync(Expression<Func<T, bool>> predicate)
-        {
-            var entities = await context.Set<T>()
-                .Where(predicate)
-                .ToListAsync();
-
-            if (entities.Count > 0)
-            {
-                return entities;
-            }
-
-            return null;
         }
     }
 }

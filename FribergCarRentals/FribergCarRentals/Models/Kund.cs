@@ -4,20 +4,8 @@ using System.ComponentModel.DataAnnotations;
 namespace FribergCarRentals.Models
 {
     [Index(nameof(Email), IsUnique = true)]
-    public class Kund
+    public class Kund : User
     {
-        public int Id { get; set; }
-
-        [Required(ErrorMessage = "Email saknas")]
-        [EmailAddress(ErrorMessage = "Email ogiltigt")]
-        [MaxLength(100)]
-        public string Email { get; set; } = null!;
-
-        [Required(ErrorMessage = "Lösenord saknas")]
-        [MinLength(5, ErrorMessage = "Minst 5 karaktärer")]
-        [MaxLength(100)]
-        public string Lösenord { get; set; } = null!;
-
         [Required(ErrorMessage = "Förnamn saknas")]
         [MaxLength(100)]
         public string Förnamn { get; set; } = null!;
@@ -26,6 +14,7 @@ namespace FribergCarRentals.Models
         [MaxLength(100)]
         public string Efternamn { get; set; } = null!;
 
+        [Phone]
         [Required(ErrorMessage = "Telefonnummer saknas")]
         [MaxLength(20)]
         public string TelefonNummer { get; set; } = null!;
@@ -43,5 +32,9 @@ namespace FribergCarRentals.Models
         public string Ort { get; set; } = null!;
 
         public virtual List<Bokning> Bokningar { get; set; } = new();
+        public Kund()
+        {
+            this.Role = "kund";
+        }
     }
 }

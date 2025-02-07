@@ -86,11 +86,6 @@
             var divHeight = div.getBoundingClientRect().width / 10 * 7;
             div.style.height = divHeight + "px";
 
-            if (!image.naturalWidth || !image.naturalHeight){
-                image.onload = () => resizeImg(image);
-                return;
-            }
-
             var widthRatio = div.getBoundingClientRect().width / image.naturalWidth;
             var heightRatio = div.getBoundingClientRect().height / image.naturalHeight;
             var scaleFactor = Math.min(widthRatio, heightRatio);
@@ -102,7 +97,7 @@
         function bytBild(select, bilId){
             var image = document.getElementById("bild-" + bilId);
             image.src = select.value;
-            resizeImg(image);
+            image.onload = () => resizeImg(image);
         }
 
         function frågaTaBort(bilId){

@@ -8,6 +8,6 @@ namespace FribergCarRentals.Data
         Task<IEnumerable<Bil>?> GetAllWithPågåendeBokningarAsync();
         Task<IEnumerable<Bil>?> GetAllWithAvslutadeBokningarAsync();
         Task<IEnumerable<Bil>?> GetAllWithBokningarAsync();
-        List<Bil>? GetRandomBilar();
+        IAsyncEnumerable<Bil>? GetRandomBilarAsync();
     }
 }
