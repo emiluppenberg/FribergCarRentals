@@ -57,11 +57,6 @@ namespace FribergCarRentals
             {
                 var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                if (userId == null)
-                {
-                    throw new Exception("Inloggning krävs");
-                }
-
                 return Convert.ToInt32(userId);
             }
 
@@ -76,11 +71,6 @@ namespace FribergCarRentals
             if (httpContext.User.HasClaim(ClaimTypes.Role, "admin"))
             {
                 var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-                if (userId == null)
-                {
-                    throw new Exception("Adminbehörighet krävs");
-                }
 
                 return Convert.ToInt32(userId);
             }

@@ -1,4 +1,5 @@
-﻿@model IEnumerable<FribergCarRentals.Models.Bil>
+﻿@using System.Security.Claims
+@model IEnumerable<FribergCarRentals.Models.Bil>
 
 @{
     ViewData["Title"] = "Bilar";
@@ -63,14 +64,22 @@
             <div class="card card-body d-flex flex-column">
                 <p id="result-@bil.Id"></p>
                 <div class="d-flex flex-row justify-content-center">
-                    <div class="d-flex flex-column mx-5">
-                        <input type="hidden" id="bilId-@bil.Id" value="@bil.Id" />
-                        <label for="startdatum">Startdatum</label>
-                        <input type="date" id="startdatum-@bil.Id" class="form-control" />
-                        <label for="slutdatum">Slutdatum</label>
-                        <input type="date" id="slutdatum-@bil.Id" class="form-control" />
-                        <button class="btn btn-dark mt-1" onclick="nyBokning(@bil.Id)">Boka</button>
-                    </div>
+                    @if (Context.User.HasClaim(ClaimTypes.Role, "kund"))
+                    {
+                        <div class="d-flex flex-column mx-5">
+                            <input type="hidden" id="bilId-@bil.Id" value="@bil.Id" />
+                            <label for="startdatum">Startdatum</label>
+                            <input type="date" id="startdatum-@bil.Id" class="form-control" />
+                            <label for="slutdatum">Slutdatum</label>
+                            <input type="date" id="slutdatum-@bil.Id" class="form-control" />
+                            <button class="btn btn-dark mt-1" onclick="nyBokning(@bil.Id)">Boka</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <a class="btn btn-dark mt-1 mx-1" asp-action="Index" asp-controller="Kund" asp-route-returnUrl="@Context.Request.Path/#container-@bil.Id">Logga in</a>
+                        <a class="btn btn-dark mt-1 mx-1" asp-action="Registrera" asp-controller="Kund" asp-route-returnUrl="@Context.Request.Path/#container-@bil.Id">Registrera</a>
+                    }
                     <div class="d-flex flex-column" id="datum-@bil.Id">
                         <p class="fw-bold">Otillgängliga datum:</p>
                         @foreach (var bokning in bil.Bokningar)
